@@ -96,6 +96,16 @@ function MainController($scope, $http, socketService) {
             .attr('class', 'line')
             .attr('d', line);
 
+        /*svg.selectAll(".point")
+            .data(data)
+            .enter().append("circle")
+            .attr("class", "point")
+            .attr("r", 4.5)
+            .attr("cx", function(d) { return x(d.date); })
+            .attr("cy", function(d) { return y(d.value); })
+            .append("title")
+            .text(function(d) { return d.value; });*/
+
         svg.append('g')
             .attr('class', 'x axis')
             .attr('transform', 'translate(0,' + height + ')')

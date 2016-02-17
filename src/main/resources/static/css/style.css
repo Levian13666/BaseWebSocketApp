@@ -23,3 +23,8 @@ text {
     fill: url(#area-gradient);
     stroke: none;
 }
+
+.point {
+    fill: white;
+    stroke: #000;
+}
