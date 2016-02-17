@@ -3,10 +3,12 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title></title>
+
+    <link href="css/style.css" type="text/css" rel="stylesheet">
 </head>
 <body>
     <div ng-controller="mainController">
-        <div>{{data}}<div>
+        <!--<div>{{data}}</div>
         <br/>
         <br/>
         <div>
@@ -16,11 +18,11 @@
             </div>
         </div>
         <button ng-click="connect()">Connect To Socket</button>
-        <button ng-click="disconnect()">Disconnect</button>
+        <button ng-click="disconnect()">Disconnect</button>-->
     </div>
-
 </body>
 
+<script src="webjars/d3js/3.5.12/d3.min.js"></script>
 <script src="webjars/angularjs/1.3.15/angular.min.js"></script>
 <script src="js/sockjs.min.js"></script>
 <script src="webjars/stomp-websocket/2.3.3/stomp.min.js"></script>

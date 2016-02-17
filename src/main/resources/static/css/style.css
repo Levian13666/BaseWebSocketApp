@@ -1,0 +1,25 @@
+body {
+    margin: auto;
+}
+
+text {
+    font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.line {
+    fill: none;
+    stroke: url(#line-gradient);
+    stroke-width: 5px;
+}
+
+.area {
+    fill: url(#area-gradient);
+    stroke: none;
+}
