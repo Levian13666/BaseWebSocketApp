@@ -2,6 +2,11 @@ body {
     margin: auto;
 }
 
+svg {
+    border: 1px solid gainsboro;
+    margin: 10px;
+}
+
 text {
     font: 10px sans-serif;
 }
