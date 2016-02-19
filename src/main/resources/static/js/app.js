@@ -2,117 +2,118 @@ angular.module('main', []).controller('mainController', ['$scope', '$http', 'soc
 
 function MainController($scope, $http, socketService) {
     /*$http.get('/rest').then(function(res){
-        $scope.data = 'Rest: ' + res.data.result;
-    });
+     $scope.data = 'Rest: ' + res.data.result;
+     });
 
-    $scope.connect = function() {
-        $scope.socketMessages = [];
-        socketService.connect(function(response){
-            $scope.socketMessages.unshift(response.body.replace(/'/g,''));
-            $scope.$apply();
-        });
-    };
+     $scope.connect = function() {
+     $scope.socketMessages = [];
+     socketService.connect(function(response){
+     $scope.socketMessages.unshift(response.body.replace(/'/g,''));
+     $scope.$apply();
+     });
+     };
 
-    $scope.disconnect = function() {
-        socketService.disconnect();
-    }*/
+     $scope.disconnect = function() {
+     socketService.disconnect();
+     }*/
 
     var margin = {top: 20, right: 20, bottom: 30, left: 50},
         width = 960 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom;
 
-    var svg = d3.select('body').append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-        .append('g')
-        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+    function wordCloud(selector) {
 
-    var x = d3.time.scale().range([0, width]);
-    var y = d3.scale.linear().range([height, 0]);
+        var fill = d3.scale.category20();
 
-    var xAxis = d3.svg.axis().scale(x).orient('bottom').ticks(d3.time.months);
-    var yAxis = d3.svg.axis().scale(y).orient('left');
+        //Construct the word cloud's SVG element
+        var svg = d3.select(selector).append("svg")
+            .attr("width", 500)
+            .attr("height", 500)
+            .append("g")
+            .attr("transform", "translate(250,250)");
 
-    var line = d3.svg.line()
-        .x(function(d) { return x(d.date); })
-        .y(function(d) { return y(d.value); })
-        .interpolate('cardinal');
 
-    var  area = d3.svg.area()
-        .x(function(d) { return x(d.date); })
-        .y0(height)
-        .y1(function(d) { return y(d.value); })
-        .interpolate('cardinal');
+        //Draw the word cloud
+        function draw(words) {
+            var cloud = svg.selectAll("g text")
+                .data(words, function (d) {
+                    return d.text;
+                });
 
-    var parseDate = d3.time.format('%d-%b-%y').parse;
+            //Entering words
+            cloud.enter()
+                .append("text")
+                .style("font-family", "Impact")
+                .style("fill", function (d, i) {
+                    return fill(i);
+                })
+                .attr("text-anchor", "middle")
+                .attr('font-size', 1)
+                .text(function (d) {
+                    return d.text;
+                });
 
-    d3.csv('rest/data', function(d) {
-        d.date = parseDate(d.date);
-        d.value = +d.value;
-        return d;
-    }, function(errors, data) {
+            //Entering and existing words
+            cloud
+                .transition()
+                .duration(600)
+                .style("font-size", function (d) {
+                    return d.size + "px";
+                })
+                .attr("transform", function (d) {
+                    return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                })
+                .style("fill-opacity", 1);
 
-        x.domain(d3.extent(data, function(d) {return d.date;}));
-        y.domain([0, d3.max(data, function(d) {return d.value;}) + 50]);
+            //Exiting words
+            cloud.exit()
+                .transition()
+                .duration(200)
+                .style('fill-opacity', 1e-6)
+                .attr('font-size', 1)
+                .remove();
+        }
 
-        svg.append("linearGradient")
-            .attr("id", "line-gradient")
-            .attr("gradientUnits", "userSpaceOnUse")
-            .attr("x1", 0).attr("y1", y(50))
-            .attr("x2", 0).attr("y2", y(120))
-            .selectAll("stop")
-            .data([
-                {offset: "0%", color: "#ec5c75"},
-                {offset: "50%", color: "#9d56b6"},
-                {offset: "80%", color: "#5451f5"}
-            ])
-            .enter().append("stop")
-            .attr("offset", function(d) { return d.offset; })
-            .attr("stop-color", function(d) { return d.color; });
 
-        svg.append("linearGradient")
-            .attr("id", "area-gradient")
-            .attr("gradientUnits", "userSpaceOnUse")
-            .attr("x1", 0).attr("y1", y(20))
-            .attr("x2", 0).attr("y2", y(60))
-            .selectAll("stop")
-            .data([
-                {offset: "0%", color: "white"},
-                {offset: "100%", color: "#eef4fb"}
-            ])
-            .enter().append("stop")
-            .attr("offset", function(d) { return d.offset; })
-            .attr("stop-color", function(d) { return d.color; });
+        //Use the module pattern to encapsulate the visualisation code. We'll
+        // expose only the parts that need to be public.
+        return {
 
-        console.log(data);
+            //Recompute the word cloud for a new set of words. This method will
+            // asycnhronously call draw when the layout has been computed.
+            //The outside world will need to call this function, so make it part
+            // of the wordCloud return value.
+            update: function (words) {
+                d3.layout.cloud().size([500, 500])
+                    .words(words)
+                    .padding(1)
+                    .rotate(function () {
+                        return ~~(Math.random() * 2) * 30;
+                    })
+                    .font("Impact")
+                    .fontSize(function (d) {
+                        return d.size;
+                    })
+                    .on("end", draw)
+                    .start();
+            }
+        }
 
-        svg.append('path')
-            .datum(data)
-            .attr('class', 'area')
-            .attr('d', area);
+    }
 
-        svg.append('path')
-            .datum(data)
-            .attr('class', 'line')
-            .attr('d', line);
+    //Create a new instance of the word cloud visualisation.
+    var myWordCloud = wordCloud('body');
 
-        /*svg.selectAll(".point")
-            .data(data)
-            .enter().append("circle")
-            .attr("class", "point")
-            .attr("r", 4.5)
-            .attr("cx", function(d) { return x(d.date); })
-            .attr("cy", function(d) { return y(d.value); })
-            .append("title")
-            .text(function(d) { return d.value; });*/
+    d3.csv('rest/data', function(data) {
+        var words = data.map(function(d){return {text: d.word, size: d.count * 1.7 }});
+        console.log(words);
 
-        svg.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(0,' + height + ')')
-            .call(xAxis);
-
-        svg.append('g')
-            .attr('class', 'y axis')
-            .call(yAxis);
+        function update() {
+            myWordCloud.update(words);
+            setTimeout(function () {
+                update();
+            }, 2000)
+        };
+        update();
     });
 }

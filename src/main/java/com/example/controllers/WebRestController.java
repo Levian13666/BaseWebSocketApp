@@ -21,7 +21,7 @@ public class WebRestController {
 
     @RequestMapping("data")
     public byte[] getData() throws IOException {
-        return Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("data/data.csv").getPath().substring(1)));
+        return Files.readAllBytes(Paths.get(this.getClass().getClassLoader().getResource("data/words.csv").getPath().substring(1)));
     }
 
 }
