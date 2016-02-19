@@ -26,28 +26,28 @@ function MainController($scope, $http, socketService) {
         var fill = d3.scale.category20();
 
         //Construct the word cloud's SVG element
-        var svg = d3.select(selector).append("svg")
-            .attr("width", 500)
-            .attr("height", 500)
-            .append("g")
-            .attr("transform", "translate(250,250)");
+        var svg = d3.select(selector).append('svg')
+            .attr('width', 500)
+            .attr('height', 500)
+            .append('g')
+            .attr('transform', 'translate(250,250)');
 
 
         //Draw the word cloud
         function draw(words) {
-            var cloud = svg.selectAll("g text")
+            var cloud = svg.selectAll('g text')
                 .data(words, function (d) {
                     return d.text;
                 });
 
             //Entering words
             cloud.enter()
-                .append("text")
-                .style("font-family", "Impact")
-                .style("fill", function (d, i) {
+                .append('text')
+                .style('font-family', 'Impact')
+                .style('fill', function (d, i) {
                     return fill(i);
                 })
-                .attr("text-anchor", "middle")
+                .attr('text-anchor', 'middle')
                 .attr('font-size', 1)
                 .text(function (d) {
                     return d.text;
@@ -56,14 +56,14 @@ function MainController($scope, $http, socketService) {
             //Entering and existing words
             cloud
                 .transition()
-                .duration(600)
-                .style("font-size", function (d) {
-                    return d.size + "px";
+                .duration(300)
+                .style('font-size', function (d) {
+                    return d.size + 'px';
                 })
-                .attr("transform", function (d) {
-                    return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+                .attr('transform', function (d) {
+                    return 'translate(' + [d.x, d.y] + ')rotate(' + d.rotate + ')';
                 })
-                .style("fill-opacity", 1);
+                .style('fill-opacity', 1);
 
             //Exiting words
             cloud.exit()
@@ -90,11 +90,11 @@ function MainController($scope, $http, socketService) {
                     .rotate(function () {
                         return ~~(Math.random() * 2) * 30;
                     })
-                    .font("Impact")
+                    .font('Impact')
                     .fontSize(function (d) {
                         return d.size;
                     })
-                    .on("end", draw)
+                    .on('end', draw)
                     .start();
             }
         }
@@ -112,8 +112,29 @@ function MainController($scope, $http, socketService) {
             myWordCloud.update(words);
             setTimeout(function () {
                 update();
-            }, 2000)
+            }, 1000)
         };
         update();
     });
+
+    var svg = d3.select('body').append('svg')
+        .attr('width', 500)
+        .attr('height', 500)
+        .append('g')
+        .attr('transform', 'translate(250,250)');
+    
+    var text = svg.append('text').text('text').attr('x', -50).attr('y', 0).attr('font-family', 'sans-serif').style('font-size', '50px');
+
+    function update(time) {
+        var x = Math.sin(time) * 100 - 50;
+        text.attr('x', x).style('font-size', function() {
+            return ((Math.cos(time) * 1.1) + 3) * 10 + 'px';
+        });
+        setTimeout(function () {
+            time += 0.1;
+            update(time);
+        }, 50);
+    }
+
+    update(0);
 }
