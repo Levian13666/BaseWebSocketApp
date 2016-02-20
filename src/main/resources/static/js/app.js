@@ -23,14 +23,16 @@ function MainController($scope, $http, socketService) {
 
     function wordCloud(selector) {
 
-        var fill = d3.scale.category20();
+        var fill = d3.scale.linear()
+            .domain([-1, 0, 1])
+            .range(["red", "white", "green"]);
 
         //Construct the word cloud's SVG element
         var svg = d3.select(selector).append('svg')
-            .attr('width', 500)
-            .attr('height', 500)
+            .attr('width', 800)
+            .attr('height', 800)
             .append('g')
-            .attr('transform', 'translate(250,250)');
+            .attr('transform', 'translate(400,400)');
 
 
         //Draw the word cloud
@@ -68,7 +70,7 @@ function MainController($scope, $http, socketService) {
             //Exiting words
             cloud.exit()
                 .transition()
-                .duration(200)
+                .duration(100)
                 .style('fill-opacity', 1e-6)
                 .attr('font-size', 1)
                 .remove();
@@ -84,7 +86,7 @@ function MainController($scope, $http, socketService) {
             //The outside world will need to call this function, so make it part
             // of the wordCloud return value.
             update: function (words) {
-                d3.layout.cloud().size([500, 500])
+                d3.layout.cloud().size([800, 800])
                     .words(words)
                     .padding(1)
                     .rotate(function () {
@@ -105,7 +107,12 @@ function MainController($scope, $http, socketService) {
     var myWordCloud = wordCloud('body');
 
     d3.csv('rest/data', function(data) {
-        var words = data.map(function(d){return {text: d.word, size: d.count * 1.7 }});
+        var words = [];
+        for (var i = 0; i < data.length; i++) {
+            if (data[i].rate * .07 >= 10) {
+                words.push({text: data[i].word, size: data[i].rate * .07 })
+            }
+        }
         console.log(words);
 
         function update() {
@@ -113,7 +120,7 @@ function MainController($scope, $http, socketService) {
             setTimeout(function () {
                 update();
             }, 1000)
-        };
+        }
         update();
     });
 
