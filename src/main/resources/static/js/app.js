@@ -22,10 +22,9 @@ function MainController($scope, $http, socketService) {
         height = 500 - margin.top - margin.bottom;
 
     function wordCloud(selector) {
-
         var fill = d3.scale.linear()
-            .domain([-1, 0, 1])
-            .range(["red", "white", "green"]);
+            .domain([5, 35, 75])
+            .range(['#ec5c75', '#9d56b6', '#5451f5']);
 
         //Construct the word cloud's SVG element
         var svg = d3.select(selector).append('svg')
@@ -47,7 +46,7 @@ function MainController($scope, $http, socketService) {
                 .append('text')
                 .style('font-family', 'Impact')
                 .style('fill', function (d, i) {
-                    return fill(i);
+                    return fill(d.size);
                 })
                 .attr('text-anchor', 'middle')
                 .attr('font-size', 1)
@@ -90,8 +89,9 @@ function MainController($scope, $http, socketService) {
                     .words(words)
                     .padding(1)
                     .rotate(function () {
-                        return ~~(Math.random() * 2) * 30;
+                        return ~~(Math.random() * 2) * 90;
                     })
+                    .spiral('archimedean')
                     .font('Impact')
                     .fontSize(function (d) {
                         return d.size;
@@ -119,7 +119,7 @@ function MainController($scope, $http, socketService) {
             myWordCloud.update(words);
             setTimeout(function () {
                 update();
-            }, 1000)
+            }, 1500)
         }
         update();
     });
@@ -132,11 +132,21 @@ function MainController($scope, $http, socketService) {
     
     var text = svg.append('text').text('text').attr('x', -50).attr('y', 0).attr('font-family', 'sans-serif').style('font-size', '50px');
 
+
+    var color = d3.scale.linear()
+        .domain([20, 40])
+        .range(['gray', 'black']);
+
     function update(time) {
         var x = Math.sin(time) * 100 - 50;
-        text.attr('x', x).style('font-size', function() {
-            return ((Math.cos(time) * 1.1) + 3) * 10 + 'px';
-        });
+        var size = ((Math.cos(time) * 1.1) + 3) * 10;
+        text.attr('x', x)
+            .style('font-size', function() {
+                return size + 'px';
+            })
+            .attr('fill', function(){
+                return color(size)
+            });
         setTimeout(function () {
             time += 0.1;
             update(time);
