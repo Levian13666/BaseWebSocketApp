@@ -1,6 +1,57 @@
-angular.module('main', []).controller('mainController', ['$scope', '$http', 'socketService', MainController]);
+angular.module('main', []).controller('mainController', ['$scope', '$http', 'socketService', '$log', MainController]);
 
-function MainController($scope, $http, socketService) {
+function MainController($scope, $http, socketService, $log) {
+
+    var width = 800;
+    var height = 800;
+
+    var elementCount = 10;
+    var circleCount = 7;
+
+    var maxCircleRadius = (height / 2 - 100);
+    var minCircleRadius = 175;
+
+    //Style
+    var startColor = '#8ea1c6';
+    var endColor = '#333844';
+
+    $http.get('rest/data').then(function(res) {
+
+        $scope.data = res.data;
+
+        var circleRange = d3.scale.linear().domain([0, circleCount - 1]).range([minCircleRadius, maxCircleRadius]);
+        var colorRange = d3.scale.linear().domain([0, circleCount - 1]).range([startColor, endColor]);
+
+        var svg = d3.select('body').append('svg')
+            .attr('width', width)
+            .attr('height', height);
+
+        var circles = svg.selectAll('circle')
+            .data(d3.range(0, circleCount).reverse())
+            .enter()
+            .append('circle')
+            .attr('cx', width / 2)
+            .attr('cy', height / 2)
+            .attr('r', function(d) {return circleRange(d)})
+            .attr('fill', function(d) {
+                return colorRange(d)
+            });
+
+        var axis = svg.selectAll('line')
+            .data(d3.range(0, elementCount).reverse())
+            .enter()
+            .append('line')
+            .attr('x1', width / 2)
+            .attr('y1', height / 2)
+            .attr('x2', width / 2)
+            .attr('y2', (height - 2 * maxCircleRadius) / 2)
+            .attr('class', 'axis');
+
+        function rotatePoint(centerPoint, point, i) {
+            var result = point;
+            return result;
+        }
+    });
     /*$http.get('/rest').then(function(res){
         $scope.data = 'Rest: ' + res.data.result;
     });
@@ -17,7 +68,7 @@ function MainController($scope, $http, socketService) {
         socketService.disconnect();
     }*/
 
-    var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    /*var margin = {top: 20, right: 20, bottom: 30, left: 50},
         width = 960 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom;
 
@@ -44,9 +95,10 @@ function MainController($scope, $http, socketService) {
         .y1(function(d) { return y(d.value); })
         .interpolate('cardinal');
 
-    var parseDate = d3.time.format('%d-%b-%y').parse;
+    var parseDate = d3.time.format('%d-%b-%y').parse;*/
 
-    d3.csv('rest/data', function(d) {
+
+   /* d3.csv('rest/data', function(d) {
         d.date = parseDate(d.date);
         d.value = +d.value;
         return d;
@@ -96,7 +148,7 @@ function MainController($scope, $http, socketService) {
             .attr('class', 'line')
             .attr('d', line);
 
-        /*svg.selectAll(".point")
+        /!*svg.selectAll(".point")
             .data(data)
             .enter().append("circle")
             .attr("class", "point")
@@ -104,7 +156,7 @@ function MainController($scope, $http, socketService) {
             .attr("cx", function(d) { return x(d.date); })
             .attr("cy", function(d) { return y(d.value); })
             .append("title")
-            .text(function(d) { return d.value; });*/
+            .text(function(d) { return d.value; });*!/
 
         svg.append('g')
             .attr('class', 'x axis')
@@ -114,5 +166,5 @@ function MainController($scope, $http, socketService) {
         svg.append('g')
             .attr('class', 'y axis')
             .call(yAxis);
-    });
+    });*/
 }

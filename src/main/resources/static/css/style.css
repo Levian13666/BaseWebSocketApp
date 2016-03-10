@@ -5,23 +5,19 @@ body {
 svg {
     border: 1px solid gainsboro;
     margin: 10px;
+    background: #383d48;
 }
 
 text {
     font: 10px sans-serif;
 }
 
-.axis path,
-.axis line {
+.axis {
     fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-}
-
-.line {
-    fill: none;
-    stroke: url(#line-gradient);
-    stroke-width: 5px;
+    stroke: #fff;
+    stroke-opacity: 0.1;
+    stroke-width: 2;
+    stroke-dasharray: 3, 5;
 }
 
 .area {
