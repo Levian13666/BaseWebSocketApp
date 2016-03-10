@@ -15,17 +15,24 @@ text {
 .axis {
     fill: none;
     stroke: #fff;
-    stroke-opacity: 0.1;
+    stroke-opacity: 0.3;
     stroke-width: 2;
     stroke-dasharray: 3, 5;
 }
 
-.area {
-    fill: url(#area-gradient);
-    stroke: none;
+.chart {
+    fill: blue;
+    stroke: red;
+}
+
+.axisPoint {
+    fill: #7987a1;
+    stroke: #fff;
+    stroke-width: 2;
 }
 
 .point {
-    fill: white;
-    stroke: #000;
+    fill: red;
+    stroke: #fff;
+    stroke-width: 2;
 }

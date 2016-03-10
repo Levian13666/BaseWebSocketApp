@@ -5,7 +5,6 @@ function MainController($scope, $http, socketService, $log) {
     var width = 800;
     var height = 800;
 
-    var elementCount = 10;
     var circleCount = 7;
 
     var maxCircleRadius = (height / 2 - 100);
@@ -18,26 +17,30 @@ function MainController($scope, $http, socketService, $log) {
     $http.get('rest/data').then(function(res) {
 
         $scope.data = res.data;
+        var elementCount = $scope.data.length;
 
-        var circleRange = d3.scale.linear().domain([0, circleCount - 1]).range([minCircleRadius, maxCircleRadius]);
-        var colorRange = d3.scale.linear().domain([0, circleCount - 1]).range([startColor, endColor]);
+        var circleScale = d3.scale.linear().domain([0, circleCount - 1]).range([minCircleRadius, maxCircleRadius]);
+        var colorScale = d3.scale.linear().domain([0, circleCount - 1]).range([startColor, endColor]);
 
-        var svg = d3.select('body').append('svg')
+        var valueScale = d3.scale.linear().domain([0, 1000]).range([0, maxCircleRadius]);
+
+        var svg = d3.select('body').append('svg').attr("id", "root")
             .attr('width', width)
             .attr('height', height);
 
-        var circles = svg.selectAll('circle')
+        svg.selectAll('.circle')
             .data(d3.range(0, circleCount).reverse())
             .enter()
             .append('circle')
             .attr('cx', width / 2)
             .attr('cy', height / 2)
-            .attr('r', function(d) {return circleRange(d)})
+            .attr('r', function(d) {return circleScale(d)})
+            .attr('class', 'circle')
             .attr('fill', function(d) {
-                return colorRange(d)
+                return colorScale(d)
             });
 
-        var axis = svg.selectAll('line')
+        svg.selectAll('.axis')
             .data(d3.range(0, elementCount).reverse())
             .enter()
             .append('line')
@@ -45,12 +48,80 @@ function MainController($scope, $http, socketService, $log) {
             .attr('y1', height / 2)
             .attr('x2', width / 2)
             .attr('y2', (height - 2 * maxCircleRadius) / 2)
-            .attr('class', 'axis');
+            .attr('class', 'axis')
+            .attr('transform', function(d) {
+                return 'rotate(' + d * (360 / elementCount) + ' ' + width / 2 + ' ' + height / 2 + ')'
+            });
 
-        function rotatePoint(centerPoint, point, i) {
-            var result = point;
-            return result;
-        }
+        var axisPointsData = [];
+        d3.range(0, elementCount).forEach(function(elementIndex) {
+            d3.range(0, circleCount + 1, 2).forEach(function(circleIndex) {
+                axisPointsData.push({elementIndex: elementIndex, circleIndex: circleIndex})
+            });
+        });
+
+        svg.selectAll('.axisPoint')
+            .data(axisPointsData)
+            .enter()
+            .append('circle')
+            .attr('cx', width / 2)
+            .attr('cy', function(d) {
+                return (height - 2 * circleScale(d.circleIndex)) / 2
+            })
+            .attr('r', '4')
+            .attr('class', 'axisPoint')
+            .attr('transform', function(d) {
+                return 'rotate(' + d.elementIndex * (360 / elementCount) + ' ' + width / 2 + ' ' + height / 2 + ')'
+            });
+
+        var points = svg.selectAll('.point')
+            .data($scope.data)
+            .enter()
+            .append('circle')
+            .attr('cx', width / 2)
+            .attr('cy', function(d) {
+                return (height - 2 * valueScale(d.value)) / 2
+            })
+            .attr('r', '4')
+            .attr('class', 'point')
+            .attr('transform', function(d, i) {
+                return 'rotate(' + i * (360 / elementCount) + ' ' + width / 2 + ' ' + height / 2 + ')'
+            });
+
+        /*var chart = svg.selectAll('polygon')
+            .data(points)
+            .enter()
+            .append('polygon')
+            .attr('class', 'chart')
+            .attr('points', function(d){
+                //var newPoint = point.matrixTransform(d[0].getCTM());//new point after the transform
+                //console.log(d.map(function(d){return d.getCMT()}));
+                //return null;
+
+                return d.map(function(d) {
+
+                    var matrix = d.getScreenCTM().translate(d.getAttribute("cx"), d.getAttribute("cy"));
+                    console.log(d.getScreenCTM());
+
+                    /!*var cx = d3.select(d).attr('cx');
+                    var cy = d3.select(d).attr('cy');
+                    var ctm = d.getCTM();
+                    var x = cx + d3.transform(d3.select(d).attr("transform")).translate[0];
+                    var y = cy + d3.transform(d3.select(d).attr("transform")).translate[1];*!/
+
+                    return [matrix.e - 10, matrix.f - 10].join(",");
+                }).join(" ");
+            })[0];*/
+
+        /*function getElementCoords(element, coords) {
+            var ctm = element.getCTM(),
+                xn = ctm.e + coords.cx * ctm.a,
+                yn = ctm.f + coords.cy * ctm.d;
+            console.log(ctm);
+            return { x: xn, y: yn };
+        };
+*/
+
     });
     /*$http.get('/rest').then(function(res){
         $scope.data = 'Rest: ' + res.data.result;

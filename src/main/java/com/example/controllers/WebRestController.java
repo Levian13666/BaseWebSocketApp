@@ -22,7 +22,7 @@ public class WebRestController {
 
     @RequestMapping("data")
     public List<Map<String, Object>> getData() throws IOException {
-        String[] names = {"test0", "test1", "test2", "test3", "test4", "test5", "test6", "test7", "test8", "test9"};
+        String[] names = {"test0", "test1", "test2", "test3", "test4", "test5", "test6", "test7", "test8", "test9", "test10", "test11"};
         List<Map<String, Object>> data = new ArrayList<>();
         Random random = new Random();
         for (String name : names) {
