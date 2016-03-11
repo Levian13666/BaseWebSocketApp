@@ -41,14 +41,19 @@ text {
 
 .label {
     alignment-baseline: baseline;
-    font-family: 'Arial';
-    font-size  : 0.8em;
-    fill       : white;
+    font-family: 'Arial', serif;
+    font-size: 0.8em;
+    fill: white;
+    cursor: pointer;
 }
 
 .labelValue {
     alignment-baseline: baseline;
-    font-family: 'Arial';
-    font-size  : 1.2em;
+    font-family: 'Arial', serif;
+    font-size: 1.2em;
+    fill: #2adaf8;
+}
+
+.selector {
     fill: #2adaf8;
 }

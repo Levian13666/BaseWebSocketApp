@@ -2,12 +2,12 @@ angular.module('main', []).controller('mainController', ['$scope', '$http', Main
 
 function MainController($scope, $http) {
 
-    var width = 800;
-    var height = 800;
+    var width = 900;
+    var height = 900;
 
     var circleCount = 7;
 
-    var maxCircleRadius = (height / 2 - 100);
+    var maxCircleRadius = (height / 2 - 110);
     var minCircleRadius = 175;
 
     //style
@@ -25,12 +25,13 @@ function MainController($scope, $http) {
         var valueScale = d3.scale.linear().domain([0, 1000]).range([0, maxCircleRadius]);
 
         $scope.data.forEach(function(d, i){
-            d.textPosition = rotateAroundPoint([width / 2, height / 2], [width / 2, (height + 2 * maxCircleRadius) / 2 + 60], i * (360 / elementCount));
-            d.pointPosition = rotateAroundPoint([width / 2, height / 2], [width / 2, (height + 2 * valueScale(d.value)) / 2], i * (360 / elementCount));
+            d.index = i;
+            d.textPosition = rotateAroundPoint([width / 2, height / 2], [width / 2, (height + 2 * maxCircleRadius) / 2 + 70], - i * (360 / elementCount));
+            d.pointPosition = rotateAroundPoint([width / 2, height / 2], [width / 2, (height + 2 * valueScale(d.value)) / 2], - i * (360 / elementCount));
             d.axisPosition = rotateAroundPoint([width / 2, height / 2], [width / 2, (height + 2 * maxCircleRadius) / 2], i * (360 / elementCount));
         });
 
-        var svg = d3.select('body').append('svg').attr("id", "root")
+        var svg = d3.select('body').append('svg').attr('id', 'root')
             .attr('width', width)
             .attr('height', height);
 
@@ -84,8 +85,8 @@ function MainController($scope, $http) {
             .attr('class', 'chart')
             .attr('points', function(d){
                 return d.map(function(d) {
-                    return [d.pointPosition.x, d.pointPosition.y].join(",");
-                }).join(" ");
+                    return [d.pointPosition.x, d.pointPosition.y].join(',');
+                }).join(' ');
             });
 
         svg.selectAll('.point')
@@ -107,7 +108,42 @@ function MainController($scope, $http) {
             .attr('text-anchor', 'middle')
             .attr('class', 'label')
             .text(function(d) {return d.name})
-            .call(processText, 120, function(d) {return d.value});
+            .call(processText, 120, function(d) {return d.value})
+        /*    .on('click', select);
+
+        var selectorArc = d3.svg.arc()
+            .innerRadius(maxCircleRadius + 12)
+            .outerRadius(maxCircleRadius + 14);
+
+        var selector = svg.append('path')
+            .datum({index: 0, startAngle: -0.25, endAngle: 0.25})
+            .attr('class', 'selector')
+            .attr('d', selectorArc)
+            .attr('transform', 'translate(' + width / 2 + ',' + height / 2 +')');
+
+        function select() {
+            var index = d3.select(this).datum().index;
+            console.log(index + '/' + selector.datum().index);
+            if (index == 11 && selector.datum().index == 0) {
+                selector.datum().index = 12;
+            }
+            var rotation = index - selector.datum().index;
+
+            selector.datum().index = index;
+            selector.transition()
+                .duration(500)
+                .call(function(transition, rotation) {
+                    transition.attrTween("d", function(d) {
+                        var interpolateStartAngle = d3.interpolate(d.startAngle, d.startAngle + rotation * .5);
+                        var interpolateEndAngle = d3.interpolate(d.endAngle, d.endAngle + rotation * .5);
+                        return function(t) {
+                            d.startAngle = interpolateStartAngle(t);
+                            d.endAngle = interpolateEndAngle(t);
+                            return selectorArc(d);
+                        };
+                    });
+                }, rotation);
+        }*/
 
 
 
@@ -119,33 +155,32 @@ function MainController($scope, $http) {
                     line = [],
                     lineNumber = 0,
                     lineHeight = 1.1, // ems
-                    x = text.attr("x"),
-                    y = text.attr("y"),
+                    x = text.attr('x'),
+                    y = text.attr('y'),
                     dy = 0,
                     tspan = text.text(null)
-                        .append("tspan")
-                        .attr("x", x)
-                        .attr("y", y)
-                        .attr("dy", dy + "em"),
+                        .append('tspan')
+                        .attr('x', x)
+                        .attr('y', y)
+                        .attr('dy', dy + 'em'),
                     dx = null,
                     trigger = false;
                 while (word = words.pop()) {
                     line.push(word);
-                    tspan.text(line.join(" "));
+                    tspan.text(line.join(' '));
                     if (tspan.node().getComputedTextLength() > width) {
                         line.pop();
-                        tspan.text(line.join(" "));
+                        tspan.text(line.join(' '));
                         if (!trigger) {
-                            console.log(tspan.text());
                             dx = tspan.node().getComputedTextLength() / 2;
                             trigger = true;
                         }
                         line = [word];
-                        tspan = text.append("tspan")
+                        tspan = text.append('tspan')
                             .attr('text-anchor', 'start')
-                            .attr("x", x - (trigger ? dx : 0))
-                            .attr("y", y)
-                            .attr("dy", ++lineNumber * lineHeight + dy + "em")
+                            .attr('x', x - (trigger ? dx : 0))
+                            .attr('y', y)
+                            .attr('dy', ++lineNumber * lineHeight + dy + 'em')
                             .text(word);
                     }
                 }
@@ -154,12 +189,12 @@ function MainController($scope, $http) {
                 }
 
                 //TODO remove this!
-                tspan = text.append("tspan")
+                tspan = text.append('tspan')
                     .attr('text-anchor', 'start')
-                    .attr("x", x - dx)
-                    .attr("y", y)
-                    .attr("dy", ++lineNumber * lineHeight + dy - (lineNumber * 0.1) + "em")
-                    .attr("class", "labelValue")
+                    .attr('x', x - dx)
+                    .attr('y', y)
+                    .attr('dy', ++lineNumber * lineHeight + dy - (lineNumber * 0.1) + 'em')
+                    .attr('class', 'labelValue')
                     .text(value);
             });
         }
