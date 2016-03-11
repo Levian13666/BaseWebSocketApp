@@ -150,6 +150,8 @@ function MainController($scope, $http, socketService, $log) {
                 if (dx == null) {
                     dx = tspan.node().getComputedTextLength() / 2;
                 }
+
+                //TODO Remove this!
                 tspan = text.append("tspan")
                     .attr('text-anchor', 'start')
                     .attr("x", x - dx)
