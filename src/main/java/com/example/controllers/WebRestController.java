@@ -22,13 +22,25 @@ public class WebRestController {
 
     @RequestMapping("data")
     public List<Map<String, Object>> getData() throws IOException {
-        String[] names = {"test0", "test1", "test2", "test3", "test4", "test5", "test6", "test7", "test8", "test9", "test10", "test11"};
+        String[] names = {
+                "Computer Science",
+                "Quantitative Biology",
+                "Mathematics",
+                "Astrophysics",
+                "General Relativity and Quantum Cosmology",
+                "Nuclear Theory",
+                "Quantum Physics",
+                "Nuclear Experiment",
+                "Nonlinear Sciences",
+                "Physics",
+                "Statistics",
+                "High Energy Physics"};
         List<Map<String, Object>> data = new ArrayList<>();
         Random random = new Random();
         for (String name : names) {
             HashMap<String, Object> entity = new HashMap<>();
             entity.put("name", name);
-            entity.put("value", random.nextInt(1000 - 100 + 1) + 100);
+            entity.put("value", random.nextInt(1000 - 400 + 1) + 400);
             data.add(entity);
         }
 

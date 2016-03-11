@@ -21,8 +21,10 @@ text {
 }
 
 .chart {
-    fill: blue;
-    stroke: red;
+    fill: #2adaf8;
+    fill-opacity: 0.3;
+    stroke: #fff;
+    stroke-width: 3;
 }
 
 .axisPoint {
@@ -32,7 +34,21 @@ text {
 }
 
 .point {
-    fill: red;
+    fill: #2adaf8;
     stroke: #fff;
     stroke-width: 2;
+}
+
+.label {
+    alignment-baseline: baseline;
+    font-family: 'Arial';
+    font-size  : 0.8em;
+    fill       : white;
+}
+
+.labelValue {
+    alignment-baseline: baseline;
+    font-family: 'Arial';
+    font-size  : 1.2em;
+    fill: #2adaf8;
 }
