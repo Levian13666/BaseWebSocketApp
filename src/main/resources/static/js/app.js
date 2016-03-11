@@ -1,6 +1,6 @@
-angular.module('main', []).controller('mainController', ['$scope', '$http', 'socketService', '$log', MainController]);
+angular.module('main', []).controller('mainController', ['$scope', '$http', MainController]);
 
-function MainController($scope, $http, socketService, $log) {
+function MainController($scope, $http) {
 
     var width = 800;
     var height = 800;
@@ -10,7 +10,7 @@ function MainController($scope, $http, socketService, $log) {
     var maxCircleRadius = (height / 2 - 100);
     var minCircleRadius = 175;
 
-    //Style
+    //style
     var startColor = '#8ea1c6';
     var endColor = '#333844';
 
@@ -109,6 +109,8 @@ function MainController($scope, $http, socketService, $log) {
             .text(function(d) {return d.name})
             .call(processText, 120, function(d) {return d.value});
 
+
+
         function processText(text, width, value) {
             text.each(function () {
                 var text = d3.select(this),
@@ -151,7 +153,7 @@ function MainController($scope, $http, socketService, $log) {
                     dx = tspan.node().getComputedTextLength() / 2;
                 }
 
-                //TODO Remove this!
+                //TODO remove this!
                 tspan = text.append("tspan")
                     .attr('text-anchor', 'start')
                     .attr("x", x - dx)
