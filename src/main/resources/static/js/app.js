@@ -14,6 +14,8 @@ function MainController($scope, $http) {
     var startColor = '#8ea1c6';
     var endColor = '#333844';
 
+    var selectorSize = 0.3;
+
     $http.get('rest/data').then(function(res) {
 
         $scope.data = res.data;
@@ -118,7 +120,7 @@ function MainController($scope, $http) {
             .outerRadius(maxCircleRadius + 14);
 
         var selector = svg.append('path')
-            .datum({index: 0, startAngle: -0.25, endAngle: 0.25})
+            .datum({index: 0, startAngle: -selectorSize, endAngle: selectorSize})
             .attr('class', 'selector')
             .attr('d', selectorArc)
             .attr('transform', 'translate(' + width / 2 + ',' + height / 2 +')');
