@@ -99,7 +99,7 @@ function MainController($scope, $http) {
             .attr('class', 'point')
             ;
 
-        svg.selectAll('.labels')
+        svg.selectAll('.label')
             .data($scope.data)
             .enter()
             .append('text')
@@ -110,6 +110,8 @@ function MainController($scope, $http) {
             .text(function(d) {return d.name})
             .call(processText, 120, function(d) {return d.value})
             .on('click', select);
+
+        d3.select('.label').classed('selected', true);
 
         var selectorArc = d3.svg.arc()
             .innerRadius(maxCircleRadius + 12)
