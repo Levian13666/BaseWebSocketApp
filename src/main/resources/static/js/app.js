@@ -109,7 +109,7 @@ function MainController($scope, $http) {
             .attr('class', 'label')
             .text(function(d) {return d.name})
             .call(processText, 120, function(d) {return d.value})
-        /*    .on('click', select);
+            .on('click', select);
 
         var selectorArc = d3.svg.arc()
             .innerRadius(maxCircleRadius + 12)
@@ -122,28 +122,48 @@ function MainController($scope, $http) {
             .attr('transform', 'translate(' + width / 2 + ',' + height / 2 +')');
 
         function select() {
+            var oldIndex = selector.datum().index;
             var index = d3.select(this).datum().index;
-            console.log(index + '/' + selector.datum().index);
-            if (index == 11 && selector.datum().index == 0) {
-                selector.datum().index = 12;
+
+            d3.selectAll('.label').classed('selected', false).on('click', null);
+            d3.select(this).classed('selected', true);
+
+            var range = d3.range(0, elementCount);
+
+            var x = 0;
+            var i = oldIndex;
+            while (range[i] != index) {
+                x++;
+                i = i == elementCount - 1 ? 0 : i + 1;
             }
-            var rotation = index - selector.datum().index;
+            var y = 0;
+            i = oldIndex;
+            while (range[i] != index) {
+                y--;
+                i = (i == 0 ? elementCount : i) - 1;
+            }
+
+            var rotation = Math.abs(x) > Math.abs(y) ? y : x;
 
             selector.datum().index = index;
             selector.transition()
                 .duration(500)
+                .ease('elastic', 1, 1.2)
                 .call(function(transition, rotation) {
                     transition.attrTween("d", function(d) {
-                        var interpolateStartAngle = d3.interpolate(d.startAngle, d.startAngle + rotation * .5);
-                        var interpolateEndAngle = d3.interpolate(d.endAngle, d.endAngle + rotation * .5);
+                        var interpolateStartAngle = d3.interpolate(d.startAngle, d.startAngle + rotation * 2 * Math.PI / elementCount);
+                        var interpolateEndAngle = d3.interpolate(d.endAngle, d.endAngle + rotation * 2 * Math.PI / elementCount);
                         return function(t) {
                             d.startAngle = interpolateStartAngle(t);
                             d.endAngle = interpolateEndAngle(t);
                             return selectorArc(d);
                         };
                     });
-                }, rotation);
-        }*/
+                }, rotation)
+                .each('end', function() {
+                    d3.selectAll('.label').on('click', select);
+                });
+        }
 
 
 

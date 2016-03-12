@@ -40,11 +40,17 @@ text {
 }
 
 .label {
+    background-color: pink;
     alignment-baseline: baseline;
     font-family: 'Arial', serif;
     font-size: 0.8em;
     fill: white;
     cursor: pointer;
+
+}
+
+.selected.label {
+    text-shadow: 0 0 10px #fff;
 }
 
 .labelValue {
@@ -52,6 +58,7 @@ text {
     font-family: 'Arial', serif;
     font-size: 1.2em;
     fill: #2adaf8;
+
 }
 
 .selector {
