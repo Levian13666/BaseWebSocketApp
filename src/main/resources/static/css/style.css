@@ -1,9 +1,9 @@
 body {
     margin: auto;
+    background: #383d48;
 }
 
 svg {
-    border: 1px solid gainsboro;
     margin: 10px;
     background: #383d48;
 }
@@ -62,5 +62,28 @@ text {
 }
 
 .selector {
+    fill: #2adaf8;
+}
+
+.date-line {
+    stroke: #2adaf8;
+}
+
+.date-month {
+    cursor: pointer;
+    stroke: #2adaf8;
+    fill: #383d48;
+}
+
+.date-month-selected {
+    filter: url(#shadow);
+}
+
+.date-label {
+    cursor: pointer;
+    fill: white;
+}
+
+.date-label-selected {
     fill: #2adaf8;
 }

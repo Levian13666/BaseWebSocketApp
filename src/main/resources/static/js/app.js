@@ -2,239 +2,101 @@ angular.module('main', []).controller('mainController', ['$scope', '$http', Main
 
 function MainController($scope, $http) {
 
-    var width = 900;
-    var height = 900;
+    var width = 400;
+    var height = 100;
+    var margin = 40;
 
-    var circleCount = 7;
+    var monthFormat = d3.time.format("%b");
 
-    var maxCircleRadius = (height / 2 - 110);
-    var minCircleRadius = 175;
+    var svg = d3.select('body').append('svg').attr('id', 'root')
+        .attr('width', width)
+        .attr('height', height);
 
-    //style
-    var startColor = '#8ea1c6';
-    var endColor = '#333844';
+    var g = svg.append('g');
 
-    var selectorSize = 0.3;
+    var dateRange = d3.time.month.range(new Date(2015, 8, 1), new Date());
 
-    $http.get('rest/data').then(function(res) {
+    g.append('line')
+        .attr('x1', margin)
+        .attr('y1', margin)
+        .attr('x2', function() {
+            return margin * (dateRange.length - 1) + margin})
+        .attr('y2', margin)
+        .attr('class', 'date-line');
 
-        $scope.data = res.data;
-        var elementCount = $scope.data.length;
-
-        var circleScale = d3.scale.linear().domain([0, circleCount - 1]).range([minCircleRadius, maxCircleRadius]);
-        var colorScale = d3.scale.linear().domain([0, circleCount - 1]).range([startColor, endColor]);
-
-        var valueScale = d3.scale.linear().domain([0, 1000]).range([0, maxCircleRadius]);
-
-        $scope.data.forEach(function(d, i){
-            d.index = i;
-            d.textPosition = rotateAroundPoint([width / 2, height / 2], [width / 2, (height + 2 * maxCircleRadius) / 2 + 70], - i * (360 / elementCount));
-            d.pointPosition = rotateAroundPoint([width / 2, height / 2], [width / 2, (height + 2 * valueScale(d.value)) / 2], - i * (360 / elementCount));
-            d.axisPosition = rotateAroundPoint([width / 2, height / 2], [width / 2, (height + 2 * maxCircleRadius) / 2], i * (360 / elementCount));
+    g.selectAll("date-month")
+        .data(dateRange)
+        .enter()
+        .append("circle")
+        .attr("r", 5)
+        .attr('cx', function(d, i) {return margin * i + margin;})
+        .attr('cy', margin)
+        .attr('id', function(d, i) {return 'date-month-' + i})
+        .attr('class', 'date-month')
+        .on('click', function(d, i) {
+            select(i);
         });
 
-        var svg = d3.select('body').append('svg').attr('id', 'root')
-            .attr('width', width)
-            .attr('height', height);
-
-        svg.selectAll('.circle')
-            .data(d3.range(0, circleCount).reverse())
-            .enter()
-            .append('circle')
-            .attr('cx', width / 2)
-            .attr('cy', height / 2)
-            .attr('r', function(d) {return circleScale(d)})
-            .attr('class', 'circle')
-            .attr('fill', function(d) {
-                return colorScale(d)
-            });
-
-        svg.selectAll('.axis')
-            .data($scope.data)
-            .enter()
-            .append('line')
-            .attr('x1', width / 2)
-            .attr('y1', height / 2)
-            .attr('x2', function(d) {return d.axisPosition.x})
-            .attr('y2', function(d) {return d.axisPosition.y})
-            .attr('class', 'axis');
-
-        var axisPointsData = [];
-        d3.range(0, elementCount).forEach(function(elementIndex) {
-            d3.range(0, circleCount + 1, 2).forEach(function(circleIndex) {
-                axisPointsData.push({elementIndex: elementIndex, circleIndex: circleIndex})
-            });
+    g.selectAll("label")
+        .data(dateRange)
+        .enter()
+        .append("text")
+        .attr('x', function(d, i) {return margin * i + margin;})
+        .attr('y', margin + 20)
+        .attr('text-anchor', 'middle')
+        .attr('id', function(d, i) {return 'date-label-' + i})
+        .attr('class', 'date-label')
+        .text(function(d) {
+            return monthFormat(d);
+        })
+        .on('click', function(d, i) {
+            select(i);
         });
 
-        svg.selectAll('.axisPoint')
-            .data(axisPointsData)
-            .enter()
-            .append('circle')
-            .attr('cx', width / 2)
-            .attr('cy', function(d) {
-                return (height - 2 * circleScale(d.circleIndex)) / 2
-            })
-            .attr('r', '4')
-            .attr('class', 'axisPoint')
-            .attr('transform', function(d) {
-                return 'rotate(' + d.elementIndex * (360 / elementCount) + ' ' + width / 2 + ' ' + height / 2 + ')'
-            });
-
-        svg.selectAll('polygon')
-            .data([$scope.data])
-            .enter()
-            .append('polygon')
-            .attr('class', 'chart')
-            .attr('points', function(d){
-                return d.map(function(d) {
-                    return [d.pointPosition.x, d.pointPosition.y].join(',');
-                }).join(' ');
-            });
-
-        svg.selectAll('.point')
-            .data($scope.data)
-            .enter()
-            .append('circle')
-            .attr('cx', function(d) { return d.pointPosition.x})
-            .attr('cy', function(d) { return d.pointPosition.y})
-            .attr('r', '5')
-            .attr('class', 'point')
-            ;
-
-        svg.selectAll('.label')
-            .data($scope.data)
-            .enter()
-            .append('text')
-            .attr('x', function(d) {return d.textPosition.x})
-            .attr('y', function(d) {return d.textPosition.y})
-            .attr('text-anchor', 'middle')
-            .attr('class', 'label')
-            .text(function(d) {return d.name})
-            .call(processText, 120, function(d) {return d.value})
-            .on('click', select);
-
-        d3.select('.label').classed('selected', true);
-
-        var selectorArc = d3.svg.arc()
-            .innerRadius(maxCircleRadius + 12)
-            .outerRadius(maxCircleRadius + 14);
-
-        var selector = svg.append('path')
-            .datum({index: 0, startAngle: -selectorSize, endAngle: selectorSize})
-            .attr('class', 'selector')
-            .attr('d', selectorArc)
-            .attr('transform', 'translate(' + width / 2 + ',' + height / 2 +')');
-
-        function select() {
-            var oldIndex = selector.datum().index;
-            var index = d3.select(this).datum().index;
-
-            d3.selectAll('.label').classed('selected', false).on('click', null);
-            d3.select(this).classed('selected', true);
-
-            var range = d3.range(0, elementCount);
-
-            var x = 0;
-            var i = oldIndex;
-            while (range[i] != index) {
-                x++;
-                i = i == elementCount - 1 ? 0 : i + 1;
-            }
-            var y = 0;
-            i = oldIndex;
-            while (range[i] != index) {
-                y--;
-                i = (i == 0 ? elementCount : i) - 1;
-            }
-
-            var rotation = Math.abs(x) > Math.abs(y) ? y : x;
-
-            selector.datum().index = index;
-            selector.transition()
-                .duration(500)
-                .ease('elastic', 1, 1.2)
-                .call(function(transition, rotation) {
-                    transition.attrTween("d", function(d) {
-                        var interpolateStartAngle = d3.interpolate(d.startAngle, d.startAngle + rotation * 2 * Math.PI / elementCount);
-                        var interpolateEndAngle = d3.interpolate(d.endAngle, d.endAngle + rotation * 2 * Math.PI / elementCount);
-                        return function(t) {
-                            d.startAngle = interpolateStartAngle(t);
-                            d.endAngle = interpolateEndAngle(t);
-                            return selectorArc(d);
-                        };
-                    });
-                }, rotation)
-                .each('end', function() {
-                    d3.selectAll('.label').on('click', select);
-                });
-        }
+    function select(i) {
+        d3.selectAll('.date-label').classed('date-label-selected', false);
+        d3.select('#date-label-' + i).classed('date-label-selected', true);
+        d3.selectAll('.date-month').classed('date-month-selected', false);
+        d3.select('#date-month-' + i).classed('date-month-selected', true);
+    }
 
 
+    /*Shadow*/
+    var defs = svg.append("defs");
 
-        function processText(text, width, value) {
-            text.each(function () {
-                var text = d3.select(this),
-                    words = text.text().split(/\s+/).reverse(),
-                    word,
-                    line = [],
-                    lineNumber = 0,
-                    lineHeight = 1.1, // ems
-                    x = text.attr('x'),
-                    y = text.attr('y'),
-                    dy = 0,
-                    tspan = text.text(null)
-                        .append('tspan')
-                        .attr('x', x)
-                        .attr('y', y)
-                        .attr('dy', dy + 'em'),
-                    dx = null,
-                    trigger = false;
-                while (word = words.pop()) {
-                    line.push(word);
-                    tspan.text(line.join(' '));
-                    if (tspan.node().getComputedTextLength() > width) {
-                        line.pop();
-                        tspan.text(line.join(' '));
-                        if (!trigger) {
-                            dx = tspan.node().getComputedTextLength() / 2;
-                            trigger = true;
-                        }
-                        line = [word];
-                        tspan = text.append('tspan')
-                            .attr('text-anchor', 'start')
-                            .attr('x', x - (trigger ? dx : 0))
-                            .attr('y', y)
-                            .attr('dy', ++lineNumber * lineHeight + dy + 'em')
-                            .text(word);
-                    }
-                }
-                if (dx == null) {
-                    dx = tspan.node().getComputedTextLength() / 2;
-                }
+    var filter = defs.append("filter")
+        .attr("id", "shadow")
+        .attr("x", "-100%")
+        .attr("y", "-100%")
+        .attr("height", "300%")
+        .attr("width", "300%");
 
-                //TODO remove this!
-                tspan = text.append('tspan')
-                    .attr('text-anchor', 'start')
-                    .attr('x', x - dx)
-                    .attr('y', y)
-                    .attr('dy', ++lineNumber * lineHeight + dy - (lineNumber * 0.1) + 'em')
-                    .attr('class', 'labelValue')
-                    .text(value);
-            });
-        }
+    filter.append('feGaussianBlur')
+        .attr('in', 'SourceAlpha')
+        .attr('stdDeviation', 4)
+        .attr('result', 'blur');
 
-        function rotateAroundPoint(point, position, angle) {
-            var sin = Math.sin(angle * Math.PI / 180);
-            var cos = Math.cos(angle * Math.PI / 180);
-            var dx = position[0] - point[0];
-            var dy = position[1] - point[1];
+    filter.append('feOffset')
+        .attr('in', 'blur')
+        .attr('result', 'offsetBlur');
 
-            return {
-                x: point[0] + (dx * cos - dy * sin),
-                y: point[0] + (dx * sin - dy * cos)
-            }
-        }
+    filter.append("feFlood")
+        .attr("in", "offsetBlur")
+        .attr("flood-color", '#2adaf8')
+        .attr("flood-opacity", "1")
+        .attr("result", "offsetColor");
 
-    });
+    filter.append("feComposite")
+        .attr("in", "offsetColor")
+        .attr("in2", "offsetBlur")
+        .attr("operator", "in")
+        .attr("result", "offsetBlur");
+
+    var feMerge = filter.append('feMerge');
+
+    feMerge.append('feMergeNode')
+        .attr('in', 'offsetBlur');
+    feMerge.append('feMergeNode')
+        .attr('in', 'SourceGraphic');
 
 }
