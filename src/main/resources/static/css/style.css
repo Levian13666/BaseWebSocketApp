@@ -69,6 +69,11 @@ text {
     stroke: #2adaf8;
 }
 
+.year-line {
+    stroke: url('#line-gradient');
+    stroke-dasharray: 3, 2;
+}
+
 .date-month {
     cursor: pointer;
     stroke: #2adaf8;

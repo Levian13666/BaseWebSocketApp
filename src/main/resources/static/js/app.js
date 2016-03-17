@@ -35,7 +35,24 @@ function MainController($scope, $http) {
         .attr('class', 'date-month')
         .on('click', function(d, i) {
             select(i);
+        }).filter(function (d) {
+            return monthFormat(d) == 'Jan';
         });
+
+    g.selectAll(".date-month").each(function(d, i){
+        if (monthFormat(d) == 'Jan') {
+            g.append('line')
+                .attr('x1', function () {
+                    return margin * i + margin;
+                })
+                .attr('y1', margin - 5)
+                .attr('x2', function () {
+                    return margin * i + margin;
+                })
+                .attr('y2', margin - 25)
+                .attr('class', 'year-line');
+        }
+    });
 
     g.selectAll("label")
         .data(dateRange)
@@ -60,6 +77,17 @@ function MainController($scope, $http) {
         d3.select('#date-month-' + i).classed('date-month-selected', true);
     }
 
+    /*Gradient*/
+    var y = d3.scale.linear().range([height, 0]);
+    svg.append("linearGradient")
+        .attr("id", "line-gradient")
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", 0).attr("y1", y(0))
+        .attr("x2", 0).attr("y2", y(1000))
+        .selectAll("stop")
+        .data([
+            {offset: "0%", color: "red"},
+            {offset: "100%", color: "white"}]);
 
     /*Shadow*/
     var defs = svg.append("defs");
