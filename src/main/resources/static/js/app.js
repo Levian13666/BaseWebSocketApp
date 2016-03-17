@@ -5,8 +5,11 @@ function MainController($scope, $http) {
     var width = 400;
     var height = 100;
     var margin = 40;
+    var yearMarginStart = margin - 7;
+    var yearMarginEnd = margin - 35;
 
     var monthFormat = d3.time.format("%b");
+    var yearFormat = d3.time.format("%Y");
 
     var svg = d3.select('body').append('svg').attr('id', 'root')
         .attr('width', width)
@@ -22,7 +25,7 @@ function MainController($scope, $http) {
         .attr('x2', function() {
             return margin * (dateRange.length - 1) + margin})
         .attr('y2', margin)
-        .attr('class', 'date-line');
+        .attr('class', 'month-line');
 
     g.selectAll("date-month")
         .data(dateRange)
@@ -41,16 +44,24 @@ function MainController($scope, $http) {
 
     g.selectAll(".date-month").each(function(d, i){
         if (monthFormat(d) == 'Jan') {
-            g.append('line')
+            g.insert('line', ":first-child")
                 .attr('x1', function () {
                     return margin * i + margin;
                 })
-                .attr('y1', margin - 5)
+                .attr('y1', yearMarginStart)
                 .attr('x2', function () {
                     return margin * i + margin;
                 })
-                .attr('y2', margin - 25)
+                .attr('y2', yearMarginEnd)
                 .attr('class', 'year-line');
+
+            g.insert('text', ":first-child")
+                .attr('x', function () {
+                    return margin * i + margin + 5;
+                })
+                .attr('y', yearMarginEnd + 5)
+                .text(yearFormat(d))
+                .attr('class', 'date-year-label');
         }
     });
 
@@ -77,19 +88,36 @@ function MainController($scope, $http) {
         d3.select('#date-month-' + i).classed('date-month-selected', true);
     }
 
-    /*Gradient*/
-    var y = d3.scale.linear().range([height, 0]);
+    /*Gradients*/
     svg.append("linearGradient")
-        .attr("id", "line-gradient")
+        .attr("id", "year-line-gradient")
         .attr("gradientUnits", "userSpaceOnUse")
-        .attr("x1", 0).attr("y1", y(0))
-        .attr("x2", 0).attr("y2", y(1000))
+        .attr("x1", 0).attr("y1", yearMarginStart)
+        .attr("x2", 0).attr("y2", yearMarginEnd)
         .selectAll("stop")
         .data([
-            {offset: "0%", color: "red"},
-            {offset: "100%", color: "white"}]);
+            {offset: "10%", color: "#2adaf8"},
+            {offset: "100%", color: "#383d48"}
+        ])
+        .enter().append("stop")
+        .attr("offset", function(d) { return d.offset; })
+        .attr("stop-color", function(d) { return d.color; });
 
-    /*Shadow*/
+    svg.append("linearGradient")
+        .attr("id", "month-line-gradient")
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", 0).attr("y1", margin)
+        .attr("x2", width).attr("y2", margin)
+        .selectAll("stop")
+        .data([
+            {offset: "1%", color: "#383d48"},
+            {offset: "100%", color: "#2adaf8"}
+        ])
+        .enter().append("stop")
+        .attr("offset", function(d) { return d.offset; })
+        .attr("stop-color", function(d) { return d.color; });
+
+    /*Shadow Filter*/
     var defs = svg.append("defs");
 
     var filter = defs.append("filter")

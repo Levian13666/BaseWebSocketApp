@@ -65,19 +65,23 @@ text {
     fill: #2adaf8;
 }
 
-.date-line {
-    stroke: #2adaf8;
+.month-line {
+    stroke: url('#month-line-gradient');
 }
 
 .year-line {
-    stroke: url('#line-gradient');
-    stroke-dasharray: 3, 2;
+    stroke: url('#year-line-gradient');
+    stroke-dasharray: 2, 3;
 }
 
 .date-month {
     cursor: pointer;
     stroke: #2adaf8;
     fill: #383d48;
+}
+
+.date-year-label {
+    fill: #2adaf8;
 }
 
 .date-month-selected {
