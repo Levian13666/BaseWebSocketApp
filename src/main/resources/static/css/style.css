@@ -60,3 +60,19 @@ text {
     stroke: #2adaf8;
     filter: url(#shadow);
 }
+
+.label {
+    alignment-baseline: baseline;
+    font-family: 'Arial', serif;
+    font-size: 2em;
+    fill: #2adaf8;
+    filter: url(#shadow);
+}
+
+.date-label {
+    alignment-baseline: baseline;
+    font-family: 'Arial', serif;
+    font-size: 1em;
+    fill: white;
+    text-shadow: 0 0 10px #fff;
+}

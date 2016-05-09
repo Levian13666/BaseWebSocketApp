@@ -1,9 +1,12 @@
 angular.module('main', []).controller('mainController', ['$scope', '$http', 'socketService', MainController]);
 
 function MainController() {
-    var margin = {top: 100, right: 20, bottom: 30, left: 50},
-        width = 960 - margin.left - margin.right,
-        height = 500 - margin.top - margin.bottom;
+    var margin = {top: 100, right: 100, bottom: 30, left: 50},
+        width = 1000 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom,
+        selectorMargin = 50;
+
+    var dateFormat = d3.time.format("%b %Y");
 
     var svg = d3.select('body').append('svg')
         .attr('width', width + margin.left + margin.right)
@@ -82,43 +85,75 @@ function MainController() {
             .attr('cy', function(d) { return y(d.value); })
             .on('click', select);
 
-        var selector = chartGroup.append('g');
+        var selector = chartGroup.append('g').datum(data[3]);
 
         selector.append('line')
             .attr('class', 'selector-line')
-            .attr('x1', function() { return x(data[3].date); })
-            .attr('y1', function() { return y(data[3].value); })
-            .attr('x2', function() { return x(data[3].date); })
+            .attr('x1', function(d) { return x(d.date); })
+            .attr('y1', function(d) { return y(d.value); })
+            .attr('x2', function(d) { return x(d.date); })
             .attr('y2', function() { return height; });
 
         selector.append('line')
             .attr('class', 'selector-dash-line')
             .attr('stroke-dasharray', '3, 3')
-            .attr('x1', function() { return x(data[3].date); })
-            .attr('y1', function() { return y(data[3].value); })
-            .attr('x2', function() { return x(data[3].date); })
-            .attr('y2', function() { return 0 - margin.top; });
+            .attr('x1', function(d) { return x(d.date); })
+            .attr('y1', function(d) { return y(d.value); })
+            .attr('x2', function(d) { return x(d.date); })
+            .attr('y2', function() { return 0 - margin.top + selectorMargin; });
 
         selector.append('circle')
-            .datum({x: data[3].date, y: data[3].value})
             .attr('class', 'selector-point')
             .attr('r', 6)
-            .attr('cx', function(d) { return x(d.x); })
-            .attr('cy', function(d) { return y(d.y); });
+            .attr('cx', function(d) { return x(d.date); })
+            .attr('cy', function(d) { return y(d.value); });
+
+        selector.append('text')
+            .attr('class', 'label')
+            .attr('x', function(d) { return x(d.date);})
+            .attr('y', function() {return 0 - margin.top + selectorMargin;})
+            .text(function (d) {
+                return d.label;
+            });
+
+
+        selector.append('text')
+            .attr('class', 'date-label')
+            .attr('x', function(d) { return x(d.date);})
+            .attr('y', function() {return 0 - margin.top + selectorMargin + 15;})
+            .text(function (d) {
+                return dateFormat(d.date);
+            });
 
 
         function select() {
-            var data = d3.select(this).datum();
+            selector.datum(d3.select(this).datum());
 
-            //simple
             selector.select('.selector-point')
-                .attr('cx', function() { return x(data.date); })
-                .attr('cy', function() { return y(data.value); });
+                .attr('cx', function(d) { return x(d.date); })
+                .attr('cy', function(d) { return y(d.value); });
 
-            selector.selectAll('line')
-                .attr('x1', function() { return x(data.date); })
-                .attr('y1', function() { return y(data.value); })
-                .attr('x2', function() { return x(data.date); });
+            selector.select('.selector-line')
+                .attr('x1', function(d) { return x(d.date); })
+                .attr('y1', function(d) { return y(d.value); })
+                .attr('x2', function(d) { return x(d.date); });
+
+            selector.select('.selector-dash-line')
+                .attr('x1', function(d) { return x(d.date); })
+                .attr('y1', function(d) { return y(d.value); })
+                .attr('x2', function(d) { return x(d.date); });
+
+            selector.select('.label')
+                .attr('x', function(d) { return x(d.date);})
+                .text(function (d) {
+                    return d.label;
+                });
+
+            selector.select('.date-label')
+                .attr('x', function(d) { return x(d.date);})
+                .text(function (d) {
+                    return dateFormat(d.date);
+                });
         }
 
     });
@@ -137,13 +172,14 @@ function MainController() {
         .attr('x2', '0%')
         .attr('y2', '100%');
 
-    chartAreaGradient.append('stop')
+    chartAreaGradient
+        .append('stop')
         .attr('offset', '10%')
         .attr('stop-color', '#6ddce7')
         .attr('stop-opacity', '0.9');
 
-
-    chartAreaGradient.append('stop')
+    chartAreaGradient
+        .append('stop')
         .attr('offset', '100%')
         .attr('stop-color', '#383d48')
         .attr('stop-opacity', '0');
