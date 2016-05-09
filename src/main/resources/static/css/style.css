@@ -1,27 +1,39 @@
 body {
     margin: auto;
+    background: #383d48;
 }
 
 svg {
-    border: 1px solid gainsboro;
     margin: 10px;
+    background: #383d48;
 }
 
 text {
     font: 10px sans-serif;
 }
 
-.axis path,
-.axis line {
+.axis path {
     fill: none;
-    stroke: #000;
+}
+
+.x path,
+.x line,
+.y line {
+    stroke: #86878a;
+    stroke-width: 1px;
+    fill: none;
     shape-rendering: crispEdges;
+}
+
+.axis text {
+    fill: #86878a;
+    font-size: 12px;
 }
 
 .line {
     fill: none;
-    stroke: url(#line-gradient);
-    stroke-width: 5px;
+    stroke: #fff;
+    stroke-width: 3px;
 }
 
 .area {
@@ -30,6 +42,17 @@ text {
 }
 
 .point {
-    fill: white;
-    stroke: #000;
+    fill: #2adaf8;
+    stroke-width: 2px;
+    stroke: #fff;
+}
+
+.selector-point {
+    fill: #383d48;
+    stroke-width: 1px;
+    stroke: #2adaf8;
+}
+
+.selector-line {
+    stroke: #2adaf8;
 }

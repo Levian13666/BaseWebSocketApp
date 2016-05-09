@@ -1,22 +1,6 @@
 angular.module('main', []).controller('mainController', ['$scope', '$http', 'socketService', MainController]);
 
-function MainController($scope, $http, socketService) {
-    /*$http.get('/rest').then(function(res){
-        $scope.data = 'Rest: ' + res.data.result;
-    });
-
-    $scope.connect = function() {
-        $scope.socketMessages = [];
-        socketService.connect(function(response){
-            $scope.socketMessages.unshift(response.body.replace(/'/g,''));
-            $scope.$apply();
-        });
-    };
-
-    $scope.disconnect = function() {
-        socketService.disconnect();
-    }*/
-
+function MainController() {
     var margin = {top: 20, right: 20, bottom: 30, left: 50},
         width = 960 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom;
@@ -30,8 +14,18 @@ function MainController($scope, $http, socketService) {
     var x = d3.time.scale().range([0, width]);
     var y = d3.scale.linear().range([height, 0]);
 
-    var xAxis = d3.svg.axis().scale(x).orient('bottom').ticks(d3.time.months);
-    var yAxis = d3.svg.axis().scale(y).orient('left');
+    var xAxis = d3.svg.axis().scale(x).orient('bottom').ticks(d3.time.months).tickSize(0);
+    var yAxis = d3.svg.axis().scale(y).orient('left').tickSize(-width);
+
+    function xCustomAxis(g) {
+        g.selectAll("text")
+            .attr("dy", 20);
+    }
+
+    function yCustomAxis(g) {
+        g.selectAll("text")
+            .attr("x", -20);
+    }
 
     var line = d3.svg.line()
         .x(function(d) { return x(d.date); })
@@ -55,36 +49,33 @@ function MainController($scope, $http, socketService) {
         x.domain(d3.extent(data, function(d) {return d.date;}));
         y.domain([0, d3.max(data, function(d) {return d.value;}) + 50]);
 
-        svg.append("linearGradient")
-            .attr("id", "line-gradient")
-            .attr("gradientUnits", "userSpaceOnUse")
-            .attr("x1", 0).attr("y1", y(50))
-            .attr("x2", 0).attr("y2", y(120))
-            .selectAll("stop")
-            .data([
-                {offset: "0%", color: "#ec5c75"},
-                {offset: "50%", color: "#9d56b6"},
-                {offset: "80%", color: "#5451f5"}
-            ])
-            .enter().append("stop")
-            .attr("offset", function(d) { return d.offset; })
-            .attr("stop-color", function(d) { return d.color; });
-
-        svg.append("linearGradient")
+        /*svg.append("linearGradient")
             .attr("id", "area-gradient")
             .attr("gradientUnits", "userSpaceOnUse")
             .attr("x1", 0).attr("y1", y(20))
             .attr("x2", 0).attr("y2", y(60))
             .selectAll("stop")
             .data([
-                {offset: "0%", color: "white"},
-                {offset: "100%", color: "#eef4fb"}
+                {offset: "70%", color: "white"},
+                {offset: "100%", color: "#2adaf8"}
             ])
+            .attr("stop-opacity", 0.1)
             .enter().append("stop")
             .attr("offset", function(d) { return d.offset; })
-            .attr("stop-color", function(d) { return d.color; });
+            .attr("stop-color", function(d){return "hsl(" + d.color +")";});*/
 
         console.log(data);
+
+        svg.append('g')
+            .attr('class', 'x axis')
+            .attr('transform', 'translate(0,' + height + ')')
+            .call(xAxis)
+            .call(xCustomAxis);
+
+        svg.append('g')
+            .attr('class', 'y axis')
+            .call(yAxis)
+            .call(yCustomAxis);
 
         svg.append('path')
             .datum(data)
@@ -96,23 +87,38 @@ function MainController($scope, $http, socketService) {
             .attr('class', 'line')
             .attr('d', line);
 
-        /*svg.selectAll(".point")
+        svg.selectAll(".point")
             .data(data)
             .enter().append("circle")
             .attr("class", "point")
-            .attr("r", 4.5)
+            .attr("r", 5)
             .attr("cx", function(d) { return x(d.date); })
-            .attr("cy", function(d) { return y(d.value); })
-            .append("title")
+            .attr("cy", function(d) { return y(d.value); });
+
+            /*.append("title")
             .text(function(d) { return d.value; });*/
 
-        svg.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(0,' + height + ')')
-            .call(xAxis);
+        var selector = svg.append("g");
 
-        svg.append('g')
-            .attr('class', 'y axis')
-            .call(yAxis);
+        selector.append("line")
+            .attr("class", "selector-line")
+            .attr("x1", function() { return x(data[3].date); })
+            .attr("y1", function() { return y(data[3].value); })
+            .attr("x2", function() { return x(data[3].date); })
+            .attr("y2", function() { return height; });
+
+        selector.append("line")
+            .attr("class", "selector-line")
+            .attr("stroke-dasharray", "3, 3")
+            .attr("x1", function() { return x(data[3].date); })
+            .attr("y1", function() { return y(data[3].value); })
+            .attr("x2", function() { return x(data[3].date); })
+            .attr("y2", function() { return 0; });
+
+        selector.append("circle")
+            .attr("class", "selector-point")
+            .attr("r", 6)
+            .attr("cx", function() { return x(data[3].date); })
+            .attr("cy", function() { return y(data[3].value); });
     });
 }
