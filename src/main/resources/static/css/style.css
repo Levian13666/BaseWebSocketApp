@@ -37,7 +37,7 @@ text {
 }
 
 .area {
-    fill: url(#area-gradient);
+    fill: url(#chart-area-gradient);
     stroke: none;
 }
 
@@ -45,14 +45,17 @@ text {
     fill: #2adaf8;
     stroke-width: 2px;
     stroke: #fff;
+    cursor: pointer;
 }
 
 .selector-point {
     fill: #383d48;
-    stroke-width: 1px;
+    stroke-width: 2px;
     stroke: #2adaf8;
+    filter: url(#shadow);
 }
 
 .selector-line {
     stroke: #2adaf8;
+    filter: url(#shadow);
 }

@@ -18,13 +18,13 @@ function MainController() {
     var yAxis = d3.svg.axis().scale(y).orient('left').tickSize(-width);
 
     function xCustomAxis(g) {
-        g.selectAll("text")
-            .attr("dy", 20);
+        g.selectAll('text')
+            .attr('dy', 20);
     }
 
     function yCustomAxis(g) {
-        g.selectAll("text")
-            .attr("x", -20);
+        g.selectAll('text')
+            .attr('x', -20);
     }
 
     var line = d3.svg.line()
@@ -49,21 +49,6 @@ function MainController() {
         x.domain(d3.extent(data, function(d) {return d.date;}));
         y.domain([0, d3.max(data, function(d) {return d.value;}) + 50]);
 
-        /*svg.append("linearGradient")
-            .attr("id", "area-gradient")
-            .attr("gradientUnits", "userSpaceOnUse")
-            .attr("x1", 0).attr("y1", y(20))
-            .attr("x2", 0).attr("y2", y(60))
-            .selectAll("stop")
-            .data([
-                {offset: "70%", color: "white"},
-                {offset: "100%", color: "#2adaf8"}
-            ])
-            .attr("stop-opacity", 0.1)
-            .enter().append("stop")
-            .attr("offset", function(d) { return d.offset; })
-            .attr("stop-color", function(d){return "hsl(" + d.color +")";});*/
-
         console.log(data);
 
         svg.append('g')
@@ -87,38 +72,95 @@ function MainController() {
             .attr('class', 'line')
             .attr('d', line);
 
-        svg.selectAll(".point")
+        svg.selectAll('.point')
             .data(data)
-            .enter().append("circle")
-            .attr("class", "point")
-            .attr("r", 5)
-            .attr("cx", function(d) { return x(d.date); })
-            .attr("cy", function(d) { return y(d.value); });
+            .enter().append('circle')
+            .attr('class', 'point')
+            .attr('r', 5)
+            .attr('cx', function(d) { return x(d.date); })
+            .attr('cy', function(d) { return y(d.value); });
 
-            /*.append("title")
-            .text(function(d) { return d.value; });*/
+        var selector = svg.append('g');
 
-        var selector = svg.append("g");
+        selector.append('line')
+            .attr('class', 'selector-line')
+            .attr('x1', function() { return x(data[3].date); })
+            .attr('y1', function() { return y(data[3].value); })
+            .attr('x2', function() { return x(data[3].date); })
+            .attr('y2', function() { return height; });
 
-        selector.append("line")
-            .attr("class", "selector-line")
-            .attr("x1", function() { return x(data[3].date); })
-            .attr("y1", function() { return y(data[3].value); })
-            .attr("x2", function() { return x(data[3].date); })
-            .attr("y2", function() { return height; });
+        selector.append('line')
+            .attr('class', 'selector-line')
+            .attr('stroke-dasharray', '3, 3')
+            .attr('x1', function() { return x(data[3].date); })
+            .attr('y1', function() { return y(data[3].value); })
+            .attr('x2', function() { return x(data[3].date); })
+            .attr('y2', function() { return 0; });
 
-        selector.append("line")
-            .attr("class", "selector-line")
-            .attr("stroke-dasharray", "3, 3")
-            .attr("x1", function() { return x(data[3].date); })
-            .attr("y1", function() { return y(data[3].value); })
-            .attr("x2", function() { return x(data[3].date); })
-            .attr("y2", function() { return 0; });
-
-        selector.append("circle")
-            .attr("class", "selector-point")
-            .attr("r", 6)
-            .attr("cx", function() { return x(data[3].date); })
-            .attr("cy", function() { return y(data[3].value); });
+        selector.append('circle')
+            .attr('class', 'selector-point')
+            .attr('r', 6)
+            .attr('cx', function() { return x(data[3].date); })
+            .attr('cy', function() { return y(data[3].value); });
     });
+
+    /*Gradients*/
+    var defs = svg.append('defs');
+
+    //chart gradient
+    var chartAreaGradient = defs.append('linearGradient')
+        .attr('id', 'chart-area-gradient');
+
+    chartAreaGradient
+        .attr('x1', '0%')
+        .attr('y1', '0%')
+        .attr('x2', '0%')
+        .attr('y2', '100%');
+
+    chartAreaGradient.append('stop')
+        .attr('offset', '10%')
+        .attr('stop-color', '#6ddce7')
+        .attr('stop-opacity', '0.9');
+
+
+    chartAreaGradient.append('stop')
+        .attr('offset', '100%')
+        .attr('stop-color', '#383d48')
+        .attr('stop-opacity', '0');
+
+    //shadow filter
+    var filter = defs.append('filter')
+        .attr('id', 'shadow')
+        .attr('x', '-100%')
+        .attr('y', '-100%')
+        .attr('height', '300%')
+        .attr('width', '300%');
+
+    filter.append('feGaussianBlur')
+        .attr('in', 'SourceAlpha')
+        .attr('stdDeviation', 4)
+        .attr('result', 'blur');
+
+    filter.append('feOffset')
+        .attr('in', 'blur')
+        .attr('result', 'offsetBlur');
+
+    filter.append('feFlood')
+        .attr('in', 'offsetBlur')
+        .attr('flood-color', '#2adaf8')
+        .attr('flood-opacity', '1')
+        .attr('result', 'offsetColor');
+
+    filter.append('feComposite')
+        .attr('in', 'offsetColor')
+        .attr('in2', 'offsetBlur')
+        .attr('operator', 'in')
+        .attr('result', 'offsetBlur');
+
+    var feMerge = filter.append('feMerge');
+
+    feMerge.append('feMergeNode')
+        .attr('in', 'offsetBlur');
+    feMerge.append('feMergeNode')
+        .attr('in', 'SourceGraphic');
 }
