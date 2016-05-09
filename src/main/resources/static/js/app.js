@@ -1,14 +1,15 @@
 angular.module('main', []).controller('mainController', ['$scope', '$http', 'socketService', MainController]);
 
 function MainController() {
-    var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    var margin = {top: 100, right: 20, bottom: 30, left: 50},
         width = 960 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom;
 
     var svg = d3.select('body').append('svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom)
-        .append('g')
+
+    var chartGroup = svg.append('g')
         .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
     var x = d3.time.scale().range([0, width]);
@@ -32,7 +33,7 @@ function MainController() {
         .y(function(d) { return y(d.value); })
         .interpolate('cardinal');
 
-    var  area = d3.svg.area()
+    var area = d3.svg.area()
         .x(function(d) { return x(d.date); })
         .y0(height)
         .y1(function(d) { return y(d.value); })
@@ -47,32 +48,32 @@ function MainController() {
     }, function(errors, data) {
 
         x.domain(d3.extent(data, function(d) {return d.date;}));
-        y.domain([0, d3.max(data, function(d) {return d.value;}) + 50]);
+        y.domain([0, d3.max(data, function(d) {return d.value;}) + 10]);
 
         console.log(data);
 
-        svg.append('g')
+        chartGroup.append('g')
             .attr('class', 'x axis')
             .attr('transform', 'translate(0,' + height + ')')
             .call(xAxis)
             .call(xCustomAxis);
 
-        svg.append('g')
+        chartGroup.append('g')
             .attr('class', 'y axis')
             .call(yAxis)
             .call(yCustomAxis);
 
-        svg.append('path')
+        chartGroup.append('path')
             .datum(data)
             .attr('class', 'area')
             .attr('d', area);
 
-        var path = svg.append('path')
+        var path = chartGroup.append('path')
             .datum(data)
             .attr('class', 'line')
             .attr('d', line);
 
-        svg.selectAll('.point')
+        chartGroup.selectAll('.point')
             .data(data)
             .enter().append('circle')
             .attr('class', 'point')
@@ -81,7 +82,7 @@ function MainController() {
             .attr('cy', function(d) { return y(d.value); })
             .on('click', select);
 
-        var selector = svg.append('g');
+        var selector = chartGroup.append('g');
 
         selector.append('line')
             .attr('class', 'selector-line')
@@ -96,7 +97,7 @@ function MainController() {
             .attr('x1', function() { return x(data[3].date); })
             .attr('y1', function() { return y(data[3].value); })
             .attr('x2', function() { return x(data[3].date); })
-            .attr('y2', function() { return 0; });
+            .attr('y2', function() { return 0 - margin.top; });
 
         selector.append('circle')
             .datum({x: data[3].date, y: data[3].value})
@@ -107,7 +108,6 @@ function MainController() {
 
 
         function select() {
-            var oldData = selector.datum();
             var data = d3.select(this).datum();
 
             //simple
