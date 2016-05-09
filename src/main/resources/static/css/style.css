@@ -55,7 +55,8 @@ text {
     filter: url(#shadow);
 }
 
-.selector-line {
+.selector-line,
+.selector-dash-line {
     stroke: #2adaf8;
     filter: url(#shadow);
 }

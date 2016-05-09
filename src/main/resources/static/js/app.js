@@ -67,7 +67,7 @@ function MainController() {
             .attr('class', 'area')
             .attr('d', area);
 
-        svg.append('path')
+        var path = svg.append('path')
             .datum(data)
             .attr('class', 'line')
             .attr('d', line);
@@ -78,7 +78,8 @@ function MainController() {
             .attr('class', 'point')
             .attr('r', 5)
             .attr('cx', function(d) { return x(d.date); })
-            .attr('cy', function(d) { return y(d.value); });
+            .attr('cy', function(d) { return y(d.value); })
+            .on('click', select);
 
         var selector = svg.append('g');
 
@@ -90,7 +91,7 @@ function MainController() {
             .attr('y2', function() { return height; });
 
         selector.append('line')
-            .attr('class', 'selector-line')
+            .attr('class', 'selector-dash-line')
             .attr('stroke-dasharray', '3, 3')
             .attr('x1', function() { return x(data[3].date); })
             .attr('y1', function() { return y(data[3].value); })
@@ -98,11 +99,30 @@ function MainController() {
             .attr('y2', function() { return 0; });
 
         selector.append('circle')
+            .datum({x: data[3].date, y: data[3].value})
             .attr('class', 'selector-point')
             .attr('r', 6)
-            .attr('cx', function() { return x(data[3].date); })
-            .attr('cy', function() { return y(data[3].value); });
+            .attr('cx', function(d) { return x(d.x); })
+            .attr('cy', function(d) { return y(d.y); });
+
+
+        function select() {
+            var oldData = selector.datum();
+            var data = d3.select(this).datum();
+
+            //simple
+            selector.select('.selector-point')
+                .attr('cx', function() { return x(data.date); })
+                .attr('cy', function() { return y(data.value); });
+
+            selector.selectAll('line')
+                .attr('x1', function() { return x(data.date); })
+                .attr('y1', function() { return y(data.value); })
+                .attr('x2', function() { return x(data.date); });
+        }
+
     });
+
 
     /*Gradients*/
     var defs = svg.append('defs');
