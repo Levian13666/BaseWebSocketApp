@@ -96,3 +96,12 @@ text {
 .date-label-selected {
     fill: #2adaf8;
 }
+
+.scroll-button {
+    fill: #2adaf8;
+    cursor: pointer;
+}
+
+.scroll-button-panel {
+    fill: #383d48;
+}
