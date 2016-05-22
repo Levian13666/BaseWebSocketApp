@@ -17,6 +17,8 @@ function MainController($scope, $http) {
     var datePickerMargin = 40;
     var visibleMonthCount = 7;
 
+    var scrollPosition = visibleMonthCount - 1;
+
     var monthFormat = d3.time.format("%b");
     var yearFormat = d3.time.format("%Y");
 
@@ -77,7 +79,8 @@ function MainController($scope, $http) {
                 .append('xhtml:select')
                 .attr('class', 'year-select')
                 .on('change', function (d, i) {
-                    console.log('changed')
+                    scrollTo(getYearIndex(this.value) + 3);
+                    this.value = d3.select(this).select('option[selected="selected"]').attr('value');
                 });
 
             createYearSelectOptions(select, yearFormat(d));
@@ -87,11 +90,22 @@ function MainController($scope, $http) {
     function createYearSelectOptions(select, selectedYear) {
         for (var i = 0; i < yearRange.length; i++) {
             var year = yearFormat(yearRange[i]);
-            var option = select.append('option').attr('label', year);
+            var option = select.append('option').attr('label', year).attr('value', year);
             if (year == selectedYear) {
                 option.attr('selected', 'selected');
             }
         }
+    }
+
+    function getYearIndex(year) {
+        var result = 0;
+        for (var i = 0; i < dateRange.length; i++) {
+            if (year == yearFormat(dateRange[i])) {
+                result = i;
+                break
+            }
+        }
+        return result;
     }
 
     datePicker.selectAll("label")
@@ -118,7 +132,6 @@ function MainController($scope, $http) {
     }
 
     var lastMonthIndex = svg.selectAll(".date-month")[0].length - 1;
-    var scrollPosition = visibleMonthCount - 1;
 
     svg.append("rect")
         .attr("x", 0)
@@ -141,10 +154,7 @@ function MainController($scope, $http) {
         .attr('class', 'scroll-button')
         .attr("d", d3.svg.symbol().type("triangle-down").size(100))
         .on('click', function(d, i) {
-            if (scrollPosition >= visibleMonthCount) {
-                scrollPosition--;
-            }
-            scrollTo(scrollPosition);
+            scrollTo(scrollPosition - 1);
         });
 
     var rightScroll = svg.append("g");
@@ -154,10 +164,7 @@ function MainController($scope, $http) {
         .attr('class', 'scroll-button')
         .attr("d", d3.svg.symbol().type("triangle-down").size(100))
         .on('click', function(d, i) {
-            if (scrollPosition < lastMonthIndex) {
-                scrollPosition++;
-            }
-            scrollTo(scrollPosition);
+            scrollTo(scrollPosition + 1);
         });
 
     var rightEndScroll = svg.append("g");
@@ -167,8 +174,7 @@ function MainController($scope, $http) {
         .attr('class', 'scroll-button')
         .attr("d", d3.svg.symbol().type("triangle-down").size(100))
         .on('click', function(d, i) {
-            scrollPosition = lastMonthIndex;
-            scrollTo(scrollPosition);
+            scrollTo(lastMonthIndex);
         });
 
     var leftEndScroll = svg.append("g");
@@ -178,12 +184,12 @@ function MainController($scope, $http) {
         .attr('class', 'scroll-button')
         .attr("d", d3.svg.symbol().type("triangle-down").size(100))
         .on('click', function(d, i) {
-            scrollPosition = visibleMonthCount - 1;
-            scrollTo(scrollPosition);
+            scrollTo(visibleMonthCount - 1);
         });
 
     function scrollTo(monthIndex) {
         monthIndex = monthIndex < visibleMonthCount ? visibleMonthCount - 1 : monthIndex;
+        scrollPosition = monthIndex;
         var month = svg.selectAll(".date-month")[0][monthIndex];
         var x = -d3.select(month).attr("cx") + visibleMonthCount * monthCircleMargin;
         datePicker.transition().attr("transform", "translate(" + (datePickerMargin + x) + ", 0)");
