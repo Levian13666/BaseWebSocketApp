@@ -2,11 +2,15 @@ angular.module('main', []).controller('mainController', ['$scope', '$http', Main
 
 function MainController($scope, $http) {
 
+
+    var startDate = new Date(2001, 1, 1);
+    var endDate = new Date();
+
     var width = 420;
     var height = 100;
-    var margin = 40;
-    var yearMarginStart = margin - 7;
-    var yearMarginEnd = margin - 35;
+    var monthCircleMargin = 40;
+    var yearMarginStart = monthCircleMargin - 7;
+    var yearMarginEnd = monthCircleMargin - 35;
 
     var monthCircleRadius = 5;
 
@@ -20,15 +24,15 @@ function MainController($scope, $http) {
         .attr('width', width)
         .attr('height', height);
 
-    var dateRange = d3.time.month.range(new Date(2001, 1, 1), new Date());
-
+    var dateRange = d3.time.month.range(startDate, endDate);
+    var yearRange = d3.time.year.range(startDate, endDate);
 
     svg.append('line')
-        .attr('x1', margin)
-        .attr('y1', margin)
+        .attr('x1', monthCircleMargin)
+        .attr('y1', monthCircleMargin)
         .attr('x2', function() {
-            return margin * (visibleMonthCount - 1) + margin - monthCircleRadius})
-        .attr('y2', margin)
+            return monthCircleMargin * (visibleMonthCount - 1) + monthCircleMargin - monthCircleRadius})
+        .attr('y2', monthCircleMargin)
         .attr('class', 'month-line')
         .attr("transform", "translate(" + datePickerMargin + ", 0)");
 
@@ -40,8 +44,8 @@ function MainController($scope, $http) {
         .enter()
         .append("circle")
         .attr("r", monthCircleRadius)
-        .attr('cx', function(d, i) {return margin * i + margin;})
-        .attr('cy', margin)
+        .attr('cx', function(d, i) {return monthCircleMargin * i + monthCircleMargin;})
+        .attr('cy', monthCircleMargin)
         .attr('id', function(d, i) {return 'date-month-' + i})
         .attr('class', 'date-month')
         .on('click', function(d, i) {
@@ -54,31 +58,48 @@ function MainController($scope, $http) {
         if (monthFormat(d) == 'Jan') {
             datePicker.insert('line', ":first-child")
                 .attr('x1', function () {
-                    return margin * i + margin;
+                    return monthCircleMargin * i + monthCircleMargin;
                 })
                 .attr('y1', yearMarginStart)
                 .attr('x2', function () {
-                    return margin * i + margin;
+                    return monthCircleMargin * i + monthCircleMargin;
                 })
                 .attr('y2', yearMarginEnd)
                 .attr('class', 'year-line');
 
-            datePicker.insert('text', ":first-child")
+
+            var select = datePicker.append('foreignObject')
                 .attr('x', function () {
-                    return margin * i + margin + 5;
+                    return monthCircleMargin * i + monthCircleMargin + 5;
                 })
                 .attr('y', yearMarginEnd + 5)
-                .text(yearFormat(d))
-                .attr('class', 'date-year-label');
+                .attr('width', 100)
+                .append('xhtml:select')
+                .attr('class', 'year-select')
+                .on('change', function (d, i) {
+                    console.log('changed')
+                });
+
+            createYearSelectOptions(select, yearFormat(d));
         }
     });
+
+    function createYearSelectOptions(select, selectedYear) {
+        for (var i = 0; i < yearRange.length; i++) {
+            var year = yearFormat(yearRange[i]);
+            var option = select.append('option').attr('label', year);
+            if (year == selectedYear) {
+                option.attr('selected', 'selected');
+            }
+        }
+    }
 
     datePicker.selectAll("label")
         .data(dateRange)
         .enter()
         .append("text")
-        .attr('x', function(d, i) {return margin * i + margin;})
-        .attr('y', margin + 20)
+        .attr('x', function(d, i) {return monthCircleMargin * i + monthCircleMargin;})
+        .attr('y', monthCircleMargin + 20)
         .attr('text-anchor', 'middle')
         .attr('id', function(d, i) {return 'date-label-' + i})
         .attr('class', 'date-label')
@@ -96,48 +117,18 @@ function MainController($scope, $http) {
         d3.select('#date-month-' + i).classed('date-month-selected', true);
     }
 
-    /*Gradients*/
-    svg.append("linearGradient")
-        .attr("id", "year-line-gradient")
-        .attr("gradientUnits", "userSpaceOnUse")
-        .attr("x1", 0).attr("y1", yearMarginStart)
-        .attr("x2", 0).attr("y2", yearMarginEnd)
-        .selectAll("stop")
-        .data([
-            {offset: "10%", color: "#2adaf8"},
-            {offset: "100%", color: "#383d48"}
-        ])
-        .enter().append("stop")
-        .attr("offset", function(d) { return d.offset; })
-        .attr("stop-color", function(d) { return d.color; });
-
-    svg.append("linearGradient")
-        .attr("id", "month-line-gradient")
-        .attr("gradientUnits", "userSpaceOnUse")
-        .attr("x1", 0).attr("y1", margin)
-        .attr("x2", width).attr("y2", margin)
-        .selectAll("stop")
-        .data([
-            {offset: "1%", color: "#383d48"},
-            {offset: "100%", color: "#2adaf8"}
-        ])
-        .enter().append("stop")
-        .attr("offset", function(d) { return d.offset; })
-        .attr("stop-color", function(d) { return d.color; });
-
-
     var lastMonthIndex = svg.selectAll(".date-month")[0].length - 1;
     var scrollPosition = visibleMonthCount - 1;
 
     svg.append("rect")
         .attr("x", 0)
         .attr("y", 0)
-        .attr("width", margin + datePickerMargin - monthCircleRadius * 2)
+        .attr("width", monthCircleMargin + datePickerMargin - monthCircleRadius * 2)
         .attr("height", height)
         .attr("class", "scroll-button-panel");
 
     svg.append("rect")
-        .attr("x", margin * visibleMonthCount + datePickerMargin + monthCircleRadius * 2)
+        .attr("x", monthCircleMargin * visibleMonthCount + datePickerMargin + 30)
         .attr("y", 0)
         .attr("width", width)
         .attr("height", height)
@@ -159,7 +150,7 @@ function MainController($scope, $http) {
     var rightScroll = svg.append("g");
 
     rightScroll.append("path")
-        .attr("transform", "translate(" + (width - 40) + "," + (height / 2) + ") rotate(-90)")
+        .attr("transform", "translate(" + (width - 65) + "," + (height / 2) + ") rotate(-90)")
         .attr('class', 'scroll-button')
         .attr("d", d3.svg.symbol().type("triangle-down").size(100))
         .on('click', function(d, i) {
@@ -172,7 +163,7 @@ function MainController($scope, $http) {
     var rightEndScroll = svg.append("g");
 
     rightEndScroll.append("path")
-        .attr("transform", "translate(" + (width - 10) + "," + (height / 2) + ") rotate(-90)")
+        .attr("transform", "translate(" + (width - 30) + "," + (height / 2) + ") rotate(-90)")
         .attr('class', 'scroll-button')
         .attr("d", d3.svg.symbol().type("triangle-down").size(100))
         .on('click', function(d, i) {
@@ -194,7 +185,7 @@ function MainController($scope, $http) {
     function scrollTo(monthIndex) {
         monthIndex = monthIndex < visibleMonthCount ? visibleMonthCount - 1 : monthIndex;
         var month = svg.selectAll(".date-month")[0][monthIndex];
-        var x = -d3.select(month).attr("cx") + visibleMonthCount * margin;
+        var x = -d3.select(month).attr("cx") + visibleMonthCount * monthCircleMargin;
         datePicker.transition().attr("transform", "translate(" + (datePickerMargin + x) + ", 0)");
     }
 
@@ -236,4 +227,32 @@ function MainController($scope, $http) {
     feMerge.append('feMergeNode')
         .attr('in', 'SourceGraphic');
 
+    /*Gradients*/
+    svg.append("linearGradient")
+        .attr("id", "year-line-gradient")
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", 0).attr("y1", yearMarginStart)
+        .attr("x2", 0).attr("y2", yearMarginEnd)
+        .selectAll("stop")
+        .data([
+            {offset: "10%", color: "#2adaf8"},
+            {offset: "100%", color: "#383d48"}
+        ])
+        .enter().append("stop")
+        .attr("offset", function(d) { return d.offset; })
+        .attr("stop-color", function(d) { return d.color; });
+
+    svg.append("linearGradient")
+        .attr("id", "month-line-gradient")
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", 0).attr("y1", monthCircleMargin)
+        .attr("x2", width).attr("y2", monthCircleMargin)
+        .selectAll("stop")
+        .data([
+            {offset: "1%", color: "#383d48"},
+            {offset: "100%", color: "#2adaf8"}
+        ])
+        .enter().append("stop")
+        .attr("offset", function(d) { return d.offset; })
+        .attr("stop-color", function(d) { return d.color; });
 }

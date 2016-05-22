@@ -105,3 +105,9 @@ text {
 .scroll-button-panel {
     fill: #383d48;
 }
+
+.year-select {
+    background-color: #383d48;
+    color: #2adaf8;
+    border: none;
+}
