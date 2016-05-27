@@ -109,8 +109,7 @@ function MainController() {
             .attr('cy', function(d) { return y(d.value); });
 
         selector.append('text')
-            .attr('class', 'label')
-            .attr('x', function(d) { return x(d.date);})
+            .attr('class', 'label')            .attr('x', function(d) { return x(d.date);})
             .attr('y', function() {return 0 - margin.top + selectorMargin;})
             .text(function (d) {
                 return d.label;
@@ -126,8 +125,8 @@ function MainController() {
             });
 
 
-        function select() {
-            selector.datum(d3.select(this).datum());
+        function select(datum, index) {
+            selector.datum(datum);
 
             selector.select('.selector-point')
                 .attr('cx', function(d) { return x(d.date); })
@@ -145,12 +144,18 @@ function MainController() {
 
             selector.select('.label')
                 .attr('x', function(d) { return x(d.date);})
+                .attr('text-anchor', function () {
+                    return index < data.length - 1 ? 'start' : 'end';
+                })
                 .text(function (d) {
                     return d.label;
                 });
 
             selector.select('.date-label')
                 .attr('x', function(d) { return x(d.date);})
+                .attr('text-anchor', function () {
+                    return index < data.length - 1 ? 'start' : 'end';
+                })
                 .text(function (d) {
                     return dateFormat(d.date);
                 });
