@@ -97,7 +97,12 @@ text {
     fill: #2adaf8;
 }
 
+.scroll-button-icon {
+    fill: #2adaf8;
+}
+
 .scroll-button {
+    fill-opacity: 0;
     cursor: pointer;
 }
 
@@ -109,5 +114,6 @@ text {
     background-color: #383d48;
     color: #2adaf8;
     border: none;
+    outline: none;
     font-size: 10px;
 }

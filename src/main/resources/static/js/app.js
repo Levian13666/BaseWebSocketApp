@@ -74,18 +74,32 @@ function MainController($scope, $http) {
                     .attr('y2', height / 2)
                     .attr('class', 'year-line');
 
-                var select = datePickerContainer.append('foreignObject')
-                    .attr('x', function () {
+                var foreignObject = datePickerContainer.append('foreignObject');
+                var select = foreignObject.attr('x', function () {
                         return buttonPanelSize + monthRadius + monthMargin * i + 1;
                     })
                     .attr('y', 0)
-                    .attr('width', 100)
+                    .attr('width', 30)
                     .append('xhtml:select')
                     .attr('class', 'year-select')
                     .on('change', function () {
                         scrollTo(getYearIndex(this.value) + 3);
                         this.value = d3.select(this).select('option[selected="selected"]').attr('value');
                     });
+
+                var image = new Image();
+                image.onload = function () {
+                    datePickerContainer.append('image')
+                        .attr('x', function () {
+                            return buttonPanelSize + monthRadius + monthMargin * i + foreignObject.node().getBBox().width;
+                        })
+                        .attr('y', image.height / 2)
+                        .attr('width', image.width)
+                        .attr('height', image.height)
+                        .attr('xlink:href', image.src)
+                        .style('pointer-events', 'none')
+                };
+                image.src = 'img/expand.svg';
 
                 createYearSelectOptions(select, yearFormat(d));
             }
@@ -128,54 +142,74 @@ function MainController($scope, $http) {
             .attr("height", height)
             .attr("class", "scroll-button-panel");
 
-        scrollButton(
-            svg,
-            'img/left_scroll.png',
-            19,
-            36,
-            'translate(' + (buttonPanelSize + monthRadius - 25) + ', 41) scale(0.5, 0.5)'
-        ).on('click', function () {
-            scrollTo(scrollPosition - 1);
-        });
-        scrollButton(
-            svg,
-            'img/right_scroll.png',
-            19,
-            36,
-            'translate(' + (width - 40) + ', 41) scale(0.5, 0.5)'
-        ).on('click', function () {
-            scrollTo(scrollPosition + 1);
-        });
-        scrollButton(
-            svg,
-            'img/left_end_scroll.png',
-            44,
-            20,
-            'translate(0, 45) scale(0.5, 0.5)'
-        ).on('click', function () {
-            scrollTo(visibleMonthCount - 1);
-        });
-        scrollButton(
-            svg,
-            'img/right_end_scroll.png',
-            44,
-            20,
-            'translate(' + (width - 44 / 2) + ', 45) scale(0.5, 0.5)'
-        ).on('click', function () {
-            scrollTo(lastMonthIndex);
+        addScrollButton('img/left_button.svg', buttonPanelSize, true, function () {
+            scrollTo(scrollPosition - 1)
+        }, function (buttonWidth) {
+            addScrollButton('img/left_end_button.svg', buttonPanelSize - buttonWidth * 2, true, function () {
+                scrollTo(visibleMonthCount - 1)
+            });
         });
 
-        function scrollButton(container, url, imgWidth, imgHeight, transform) {
-            return container.append('svg:image')
-                .attr({
-                    'x': 0,
-                    'y': 0,
-                    'width': imgWidth,
-                    'height': imgHeight,
-                    'xlink:href': url,
-                    'class': 'scroll-button',
-                    'transform': transform
-                });
+        addScrollButton('img/right_button.svg', width - buttonPanelSize, false, function () {
+            scrollTo(scrollPosition + 1)
+        }, function (buttonWidth) {
+            addScrollButton('img/right_end_button.svg', width - buttonPanelSize + buttonWidth * 2, false, function () {
+                scrollTo(lastMonthIndex);
+            });
+        });
+
+        /**
+         * Load svg image and create button with this image as icon
+         *
+         * @param src source url for button
+         * @param x position of button on x axes
+         * @param alignRight if true then button will be aligned by right side
+         * @param action function for button's onclick event
+         * @param callback function which will be invoked after button creation, will take as parameters width and height of created button
+         */
+        function addScrollButton(src, x, alignRight, action, callback) {
+            var icon;
+            //load svg file
+            d3.xml(src, 'image/svg+xml', function(xml) {
+                var importedNode = document.importNode(xml.documentElement, true);
+                var iconWidth = 0;
+                var iconHeight = 0;
+                var xPosition = 0;
+                var yPosition = 0;
+
+                //create group container for button
+                var g = svg.append('g');
+                g.each(
+                    //load icon from svg file
+                    function() {
+                        icon = this.appendChild(importedNode.cloneNode(true));
+                        iconWidth = d3.select(icon).attr('width');
+                        iconHeight = d3.select(icon).attr('height');
+
+                        //calculate position based on icon size and alignment
+                        xPosition = x - (alignRight ? iconWidth : 0);
+                        yPosition = height / 2  - iconHeight / 2;
+                        d3.select(icon).attr('class', 'scroll-button-icon')
+                    })
+                    .attr('width', d3.select(icon).attr('width'))
+                    .attr('height', d3.select(icon).attr('height'))
+                    .attr('transform', 'translate(' + xPosition + ', ' + yPosition + ')');
+
+                //create rect around icon which allow click on any place of icon with transparent elements
+                var buttonWidth = d3.select(icon).select('path').node().getBBox().width;
+                var buttonHeight = d3.select(icon).select('path').node().getBBox().height;
+                g.append('rect')
+                    .attr('width', buttonWidth)
+                    .attr('height', buttonHeight)
+                    .attr('transform', 'translate(' + (iconWidth / 2 - buttonWidth / 2) + ', ' + (iconHeight / 2 - buttonHeight / 2) + ')')
+                    .attr('class', 'scroll-button')
+                    .on('click', action);
+
+                //run callback function with created button width and height as parameters
+                if (callback != undefined) {
+                    callback(buttonWidth, buttonHeight)
+                }
+            });
         }
 
         function createYearSelectOptions(select, selectedYear) {
