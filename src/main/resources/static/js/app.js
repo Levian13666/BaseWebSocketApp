@@ -25,11 +25,12 @@ function MainController($scope, $http) {
         var monthMargin = (width - buttonPanelSize * 2  - monthRadius * 2) / (visibleMonthCount - 1);
 
         var scrollPosition = visibleMonthCount - 1;
+        var middleMonthCount = Math.ceil(visibleMonthCount / 2) - 1;
 
         var monthFormat = d3.time.format("%b");
         var yearFormat = d3.time.format("%Y");
 
-        var yearRange = d3.time.year.range(dateArray[0], dateArray[dateArray.length - 1]);
+        var yearRange = d3.range(yearFormat(dateArray[0]), parseInt(yearFormat(dateArray[dateArray.length - 1])) + 1);
 
         svg.append('line')
             .attr('x1', buttonPanelSize + monthRadius)
@@ -40,6 +41,49 @@ function MainController($scope, $http) {
             .attr('y2', height / 2)
             .attr('class', 'month-line');
 
+        //year selector
+        var yearPickerContainer = svg.append('g');
+
+        yearPickerContainer.insert('line', ":first-child")
+            .attr('x1', function () {
+                return buttonPanelSize + monthRadius + monthMargin * middleMonthCount;
+            })
+            .attr('y1', 0)
+            .attr('x2', function () {
+                return buttonPanelSize + monthRadius + monthMargin * middleMonthCount;
+            })
+            .attr('y2', height / 2 - monthRadius)
+            .attr('class', 'year-line');
+
+        var foreignObject = yearPickerContainer.append('foreignObject');
+        var yearSelect = foreignObject.attr('x', function () {
+            return buttonPanelSize + monthRadius + monthMargin * middleMonthCount + 1;
+        })
+            .attr('y', 0)
+            .attr('width', 30)
+            .append('xhtml:select')
+            .attr('class', 'year-select')
+            .on('change', function () {
+                scrollTo(getYearIndex(this.value) + middleMonthCount);
+            });
+
+        var image = new Image();
+        image.onload = function () {
+            yearPickerContainer.append('image')
+                .attr('x', function () {
+                    return buttonPanelSize + monthRadius + monthMargin * middleMonthCount + foreignObject.node().getBBox().width;
+                })
+                .attr('y', image.height / 2)
+                .attr('width', image.width)
+                .attr('height', image.height)
+                .attr('xlink:href', image.src)
+                .style('pointer-events', 'none')
+        };
+        image.src = 'img/expand.svg';
+
+        createYearSelectOptions(yearSelect);
+
+        //month selector
         var datePickerContainer = svg.append('g');
 
         datePickerContainer.selectAll(".date-month")
@@ -60,50 +104,6 @@ function MainController($scope, $http) {
             }).filter(function (d) {
                 return monthFormat(d) == 'Jan';
             });
-
-        datePickerContainer.selectAll(".date-month").each(function (d, i) {
-            if (monthFormat(d) == 'Jan') {
-                datePickerContainer.insert('line', ":first-child")
-                    .attr('x1', function () {
-                        return buttonPanelSize + monthRadius + monthMargin * i;
-                    })
-                    .attr('y1', 0)
-                    .attr('x2', function () {
-                        return buttonPanelSize + monthRadius + monthMargin * i;
-                    })
-                    .attr('y2', height / 2)
-                    .attr('class', 'year-line');
-
-                var foreignObject = datePickerContainer.append('foreignObject');
-                var select = foreignObject.attr('x', function () {
-                        return buttonPanelSize + monthRadius + monthMargin * i + 1;
-                    })
-                    .attr('y', 0)
-                    .attr('width', 30)
-                    .append('xhtml:select')
-                    .attr('class', 'year-select')
-                    .on('change', function () {
-                        scrollTo(getYearIndex(this.value) + 3);
-                        this.value = d3.select(this).select('option[selected="selected"]').attr('value');
-                    });
-
-                var image = new Image();
-                image.onload = function () {
-                    datePickerContainer.append('image')
-                        .attr('x', function () {
-                            return buttonPanelSize + monthRadius + monthMargin * i + foreignObject.node().getBBox().width;
-                        })
-                        .attr('y', image.height / 2)
-                        .attr('width', image.width)
-                        .attr('height', image.height)
-                        .attr('xlink:href', image.src)
-                        .style('pointer-events', 'none')
-                };
-                image.src = 'img/expand.svg';
-
-                createYearSelectOptions(select, yearFormat(d));
-            }
-        });
 
         datePickerContainer.selectAll("label")
             .data(dateArray)
@@ -212,13 +212,10 @@ function MainController($scope, $http) {
             });
         }
 
-        function createYearSelectOptions(select, selectedYear) {
+        function createYearSelectOptions(select) {
             for (var i = 0; i < yearRange.length; i++) {
-                var year = yearFormat(yearRange[i]);
-                var option = select.append('option').attr('label', year).attr('value', year);
-                if (year == selectedYear) {
-                    option.attr('selected', 'selected');
-                }
+                var year = yearRange[i];
+                select.append('option').attr('label', year).attr('value', year);
             }
         }
 
@@ -242,11 +239,13 @@ function MainController($scope, $http) {
 
         function scrollTo(monthIndex) {
             monthIndex = monthIndex < visibleMonthCount ? visibleMonthCount - 1 : monthIndex;
+            monthIndex = monthIndex > lastMonthIndex ? lastMonthIndex : monthIndex;
             scrollPosition = monthIndex;
             var translate = -(monthMargin * monthIndex - monthMargin * (visibleMonthCount - 1));
             datePickerContainer.transition().attr("transform", "translate(" + translate + ", 0)");
-        }
 
+            yearSelect.node().value = yearFormat(dateArray[monthIndex - middleMonthCount]);
+        }
 
         /*Shadow Filter*/
         var defs = svg.append("defs");
