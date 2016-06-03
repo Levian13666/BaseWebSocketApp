@@ -14,9 +14,11 @@ function MainController($scope, $http) {
         .attr('width', width)
         .attr('height', height);
 
-    datePiker(svg, monthRange, 7);
+    datePiker(svg, monthRange, 7, function (date) {
+        console.log(date)
+    });
 
-    function datePiker(svg, dateArray, visibleMonthCount) {
+    function datePiker(svg, dateArray, visibleMonthCount, datePikerCallback) {
         var width = svg.attr('width');
         var height = svg.attr('height');
 
@@ -235,6 +237,10 @@ function MainController($scope, $http) {
             d3.select('#date-label-' + i).classed('date-label-selected', true);
             d3.selectAll('.date-month').classed('date-month-selected', false);
             d3.select('#date-month-' + i).classed('date-month-selected', true);
+
+            if (datePikerCallback != undefined) {
+                datePikerCallback(dateArray[i]);
+            }
         }
 
         function scrollTo(monthIndex) {
