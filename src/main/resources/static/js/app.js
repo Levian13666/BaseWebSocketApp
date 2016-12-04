@@ -1,118 +1,224 @@
 angular.module('main', []).controller('mainController', ['$scope', '$http', 'socketService', MainController]);
 
 function MainController($scope, $http, socketService) {
-    /*$http.get('/rest').then(function(res){
-        $scope.data = 'Rest: ' + res.data.result;
-    });
 
-    $scope.connect = function() {
-        $scope.socketMessages = [];
-        socketService.connect(function(response){
-            $scope.socketMessages.unshift(response.body.replace(/'/g,''));
-            $scope.$apply();
+    $scope.layer_c = 3;
+    $scope.nodes_per_layer = 3;
+    $scope.step = 1;
+    $scope.iterations = 10000;
+
+    var data = [];
+
+    function Network(step) {
+        this.layers = [];
+        this.outputNode = new Unit(step);
+        this.forward = function (input) {
+            for (var i = 0; i < this.layers.length; i++) {
+                var xVector = [];
+                if (i == 0) {
+                    xVector = input;
+                } else {
+                    for (var j = 0; j < this.layers[i - 1].length; j++) {
+                        xVector.push(this.layers[i - 1][j].p);
+                    }
+                }
+                for (var j = 0; j < this.layers[i].length; j++) {
+                    this.layers[i][j].forward(xVector);
+                }
+            }
+            var pXVector = [];
+            for (var i = 0; i < this.layers[this.layers.length - 1].length; i++) {
+                pXVector.push(this.layers[this.layers.length - 1][i].p);
+            }
+            this.outputNode.forward(pXVector);
+            return this.outputNode.p;
+        };
+        this.backward = function (t) {
+            this.outputNode.d = (t - this.outputNode.p) * d_sigm(this.outputNode.p);
+            this.outputNode.backward();
+            for (var i = this.layers.length - 1; i >= 0; i--) {
+                for (var j = 0; j < this.layers[i].length; j++) {
+                    if (i == this.layers.length - 1) {
+                        this.layers[i][j].d = this.outputNode.w[j] * this.outputNode.d * d_sigm(this.layers[i][j].p);
+                    } else {
+                        var d = 0;
+                        for (var k = 0; k < this.layers[i + 1].length; k++) {
+                            d += this.layers[i + 1][k].w[j] * this.layers[i + 1][k].d;
+                        }
+                        this.layers[i][j].d = d * d_sigm(this.layers[i][j].p);
+                    }
+                    this.layers[i][j].backward();
+                }
+            }
+        }
+    }
+
+    function Unit(step) {
+        this.x = null;
+        this.w = [];
+        this.p = null;
+        this.d = null;
+        this.b = null;
+        this.step = step;
+        this.forward = function (x) {
+            if (this.w.length == 0) {
+                for (var i = 0; i < x.length; i++) {
+                    this.w.push(math.random());
+                }
+                this.b = Math.random(0, 1);
+            }
+            this.x = x;
+            this.p = sigm(math.dot(x, this.w) + this.b);
+        };
+        this.backward = function () {
+            for (var i = 0; i < this.w.length; i++) {
+                this.w[i] += this.step * this.d * this.x[i];
+            }
+            this.b += this.step * this.d;
+        }
+    }
+
+    function draw() {
+        var width = 500;
+        var height = 500;
+
+        var dataRange = [{
+            x: -20,
+            y: 20
+        }, {
+            x: -40,
+            y: -30
+        }, {
+            x: 0,
+            y: 0
+        }, {
+            x: -20,
+            y: -20
+        }];
+
+        var svg = d3.select("svg").attr("width", width).attr("height", height).append('g')
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+        $scope.svg = svg;
+
+        d3.select("svg").on("click", function () {
+            addPoint(d3.mouse(this), 1);
+        }).on("contextmenu", function () {
+            d3.event.preventDefault();
+            addPoint(d3.mouse(this), 0);
         });
-    };
 
-    $scope.disconnect = function() {
-        socketService.disconnect();
-    }*/
+        function addPoint(mouse, value) {
+            var point = {
+                x: (mouse[0] - width / 2),
+                y: -(mouse[1] - height / 2),
+                value: value,
+                coordinates: mouse
+            };
+            data.push(point);
+            svg.append("circle").attr("r", 5).attr("cx", point.x).attr("cy", -point.y).attr("fill", value == 1 ? "red" : "blue");
+        }
 
-    var margin = {top: 20, right: 20, bottom: 30, left: 50},
-        width = 960 - margin.left - margin.right,
-        height = 500 - margin.top - margin.bottom;
+        function resultFX(x) {
+            var yRange = d3.range(-1000, 1000);
+            var m = nn(x, yRange[0]);
+            for (var y = 1; y < yRange.length; y++) {
+                if (nn(x, yRange[y]) != m) {
+                    return yRange[y];
+                }
+            }
+            return yRange[0];
+        }
 
-    var svg = d3.select('body').append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-        .append('g')
-        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+        function resultFY(y) {
+            var xRange = d3.range(-1000, 1000);
+            var m = nn(xRange[0], y);
+            for (var x = 1; x < xRange.length; x++) {
+                if (nn(xRange[x], y) != m) {
+                    return xRange[x];
+                }
+            }
+            return xRange[0];
+        }
 
-    var x = d3.time.scale().range([0, width]);
-    var y = d3.scale.linear().range([height, 0]);
+        function nn(x, y) {
+            var result = -1;
+            if (x > y && x > 10) {
+                result = 1;
+            }
+            return result;
+        }
+    }
 
-    var xAxis = d3.svg.axis().scale(x).orient('bottom').ticks(d3.time.months);
-    var yAxis = d3.svg.axis().scale(y).orient('left');
+    function sigm(x) {
+        return 1 / (1 + Math.exp(-x));
+    }
 
-    var line = d3.svg.line()
-        .x(function(d) { return x(d.date); })
-        .y(function(d) { return y(d.value); })
-        .interpolate('cardinal');
+    function d_sigm(x) {
+        return x * (1 - x);
+    }
 
-    var  area = d3.svg.area()
-        .x(function(d) { return x(d.date); })
-        .y0(height)
-        .y1(function(d) { return y(d.value); })
-        .interpolate('cardinal');
+//########################################################################
 
-    var parseDate = d3.time.format('%d-%b-%y').parse;
+    draw();
 
-    d3.csv('rest/data', function(d) {
-        d.date = parseDate(d.date);
-        d.value = +d.value;
-        return d;
-    }, function(errors, data) {
+    $scope.run = function () {
+        var net = new Network($scope.step);
+        for (var i = 0; i < $scope.layer_c; i++) {
+            net.layers[i] = [];
+            for (var j = 0; j < $scope.nodes_per_layer; j++) {
+                net.layers[i][j] = new Unit($scope.step);
+            }
+        }
 
-        x.domain(d3.extent(data, function(d) {return d.date;}));
-        y.domain([0, d3.max(data, function(d) {return d.value;}) + 50]);
+        for (var i = 0; i < $scope.iterations; i++) {
+            var successCount = 0;
+            for (var j = 0; j < data.length; j++) {
+                var record = data[j];
+                net.forward([record.x, record.y]);
+                if (math.round(net.outputNode.p) == record.value) {
+                    successCount++;
+                }
+                /*if (i % 200 == 0 && j == 0) {
+                 console.log(record.value + " / " + net.outputNode.p.toFixed(2));
+                 }*/
+                net.backward(record.value);
+            }
+            var successRate = successCount / data.length * 100;
+            if (successRate == 100) {
+                console.log("iteration #" + i + " success rate " + successRate.toFixed(2) + "%");
+                console.log("#COMPLETE#");
+                break;
+            }
+            if (i % 200 == 0) {
+                console.log("iteration #" + i + " success rate " + successRate.toFixed(2) + "%");
+            }
+        }
 
-        svg.append("linearGradient")
-            .attr("id", "line-gradient")
-            .attr("gradientUnits", "userSpaceOnUse")
-            .attr("x1", 0).attr("y1", y(50))
-            .attr("x2", 0).attr("y2", y(120))
-            .selectAll("stop")
-            .data([
-                {offset: "0%", color: "#ec5c75"},
-                {offset: "50%", color: "#9d56b6"},
-                {offset: "80%", color: "#5451f5"}
-            ])
-            .enter().append("stop")
-            .attr("offset", function(d) { return d.offset; })
-            .attr("stop-color", function(d) { return d.color; });
+        var range = d3.range(-250, 250);
+        for (var y = 0; y < range.length; y += 5) {
+            var m = f(net, range[0], range[y]);
+            for (var x = 1; x < range.length; x += 1) {
+                if (f(net, range[x], range[y]) != m) {
+                    console.log('draw');
+                    m = f(net, range[x], range[y]);
+                    $scope.svg.append("circle").attr("r", 1).attr("cx", range[x]).attr("cy", -range[y]).attr("class", "plot");
+                }
+            }
+        }
 
-        svg.append("linearGradient")
-            .attr("id", "area-gradient")
-            .attr("gradientUnits", "userSpaceOnUse")
-            .attr("x1", 0).attr("y1", y(20))
-            .attr("x2", 0).attr("y2", y(60))
-            .selectAll("stop")
-            .data([
-                {offset: "0%", color: "white"},
-                {offset: "100%", color: "#eef4fb"}
-            ])
-            .enter().append("stop")
-            .attr("offset", function(d) { return d.offset; })
-            .attr("stop-color", function(d) { return d.color; });
+        function f(net, x, y) {
+            return net.forward([x, y]) > 0.5 ? 0 : 1;
+        }
+    }
 
-        console.log(data);
+    $scope.clear = function() {
+        $scope.svg.selectAll(".plot").remove();
+    }
 
-        svg.append('path')
-            .datum(data)
-            .attr('class', 'area')
-            .attr('d', area);
+    $scope.clearData = function() {
+        data = [];
+        $scope.svg.selectAll("circle").remove();
+    }
 
-        svg.append('path')
-            .datum(data)
-            .attr('class', 'line')
-            .attr('d', line);
-
-        /*svg.selectAll(".point")
-            .data(data)
-            .enter().append("circle")
-            .attr("class", "point")
-            .attr("r", 4.5)
-            .attr("cx", function(d) { return x(d.date); })
-            .attr("cy", function(d) { return y(d.value); })
-            .append("title")
-            .text(function(d) { return d.value; });*/
-
-        svg.append('g')
-            .attr('class', 'x axis')
-            .attr('transform', 'translate(0,' + height + ')')
-            .call(xAxis);
-
-        svg.append('g')
-            .attr('class', 'y axis')
-            .call(yAxis);
-    });
 }

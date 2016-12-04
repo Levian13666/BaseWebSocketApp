@@ -9,7 +9,7 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class SocketController {
 
-    @Autowired
+/*    @Autowired
     public SimpMessageSendingOperations messagingTemplate;
 
     @MessageMapping("/connect")
@@ -20,6 +20,6 @@ public class SocketController {
             messagingTemplate.convertAndSend("/socket/answer", String.format("Message #%s", i));
         }
         messagingTemplate.convertAndSend("/socket/answer", "End!");
-    }
+    }*/
 
 }

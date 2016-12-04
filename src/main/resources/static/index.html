@@ -8,20 +8,26 @@
 </head>
 <body>
     <div ng-controller="mainController">
-        <!--<div>{{data}}</div>
-        <br/>
-        <br/>
-        <div>
-            <label>Web Socket:</label>
-            <div style="border: 1px solid black; height: 100px; width: 100px; overflow-y: auto;">
-                <span ng-repeat="message in socketMessages">{{message}}<br/></span>
-            </div>
-        </div>
-        <button ng-click="connect()">Connect To Socket</button>
-        <button ng-click="disconnect()">Disconnect</button>-->
+    <table>
+        <tr>
+            <td>
+                <svg></svg>
+            </td>
+            <td>
+                Layers:<input ng-model="layer_c"></br>
+                Nodes:<input ng-model="nodes_per_layer"></br>
+                Step:<input ng-model="step"></br>
+                Iterations:<input ng-model="iterations"></br>
+                <button ng-click="run()">Run</button>
+                <button ng-click="clear()">Clear</button>
+                <button ng-click="clearData()">Clear Data</button>
+            </td>
+        </tr>
+    </table>
     </div>
 </body>
 
+<script src="//cdnjs.cloudflare.com/ajax/libs/mathjs/3.8.0/math.min.js"></script>
 <script src="webjars/d3js/3.5.12/d3.min.js"></script>
 <script src="webjars/angularjs/1.3.15/angular.min.js"></script>
 <script src="js/sockjs.min.js"></script>
