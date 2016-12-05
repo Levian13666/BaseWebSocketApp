@@ -2,6 +2,7 @@ angular.module('main', []).controller('mainController', ['$scope', '$http', 'soc
 
 function MainController($scope, $http, socketService) {
 
+    $scope.shake_data = false;
     $scope.layer_c = 1;
     $scope.nodes_per_layer = 3;
     $scope.step = 1;
@@ -171,11 +172,35 @@ function MainController($scope, $http, socketService) {
             }
         }
 
+        var data_list;
+        if ($scope.shake_data) {
+            data_list = [];
+            for (var j = 0; j < data.length; j++) {
+                data_list.push(data[j]);
+                for (var k = 0; k < 5; k++) {
+                    var dx = 0;
+                    var dy = 0;
+                    if (k == 1) {
+                        dx = 5;
+                    } else if (k == 2) {
+                        dy = 5;
+                    } else if (k == 3) {
+                        dx = -5;
+                    } else if (k == 4) {
+                        dy = -5;
+                    }
+                    data_list.push({x: data[j].x + dx, y: data[j].y + dy, value: data[j].value})
+                }
+            }
+        } else {
+            data_list = data;
+        }
+
         for (var i = 0; i < $scope.iterations; i++) {
             var successCount = 0;
-            for (var j = 0; j < data.length; j++) {
-                var record = data[j];
-                net.forward([(record.x + 500) / 1000, (record.y + 500) / 1000]);
+            for (var j = 0; j < data_list.length; j++) {
+                var record = data_list[j];
+                net.forward([(record.x + 500) / 1000, (record.y  + 500) / 1000]);
                 if (math.round(net.outputNode.p * 10) == record.value) {
                     successCount++;
                 }
@@ -184,7 +209,7 @@ function MainController($scope, $http, socketService) {
                  }*/
                 net.backward(record.value / 10);
             }
-            var successRate = successCount / data.length * 100;
+            var successRate = successCount / (data_list.length) * 100;
             if (successRate == 100) {
                 console.log("iteration #" + i + " success rate " + successRate.toFixed(2) + "%");
                 console.log("#COMPLETE#");
