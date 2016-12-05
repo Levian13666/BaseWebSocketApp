@@ -66,7 +66,7 @@ function MainController($scope, $http, socketService) {
                 for (var i = 0; i < x.length; i++) {
                     this.w.push(math.random());
                 }
-                this.b = Math.random(0, 1);
+                this.b = math.random();
             }
             this.x = x;
             this.p = sigm(math.dot(x, this.w) + this.b);
@@ -164,14 +164,6 @@ function MainController($scope, $http, socketService) {
     draw();
 
     $scope.run = function () {
-        var net = new Network($scope.step);
-        for (var i = 0; i < $scope.layer_c; i++) {
-            net.layers[i] = [];
-            for (var j = 0; j < $scope.nodes_per_layer; j++) {
-                net.layers[i][j] = new Unit($scope.step);
-            }
-        }
-
         var data_list;
         if ($scope.shake_data) {
             data_list = [];
@@ -194,6 +186,14 @@ function MainController($scope, $http, socketService) {
             }
         } else {
             data_list = data;
+        }
+
+        var net = new Network($scope.step);
+        for (var i = 0; i < $scope.layer_c; i++) {
+            net.layers[i] = [];
+            for (var j = 0; j < $scope.nodes_per_layer; j++) {
+                net.layers[i][j] = new Unit($scope.step);
+            }
         }
 
         for (var i = 0; i < $scope.iterations; i++) {
