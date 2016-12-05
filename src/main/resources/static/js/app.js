@@ -2,7 +2,7 @@ angular.module('main', []).controller('mainController', ['$scope', '$http', 'soc
 
 function MainController($scope, $http, socketService) {
 
-    $scope.layer_c = 3;
+    $scope.layer_c = 1;
     $scope.nodes_per_layer = 3;
     $scope.step = 1;
     $scope.iterations = 10000;
@@ -116,7 +116,7 @@ function MainController($scope, $http, socketService) {
                 coordinates: mouse
             };
             data.push(point);
-            svg.append("circle").attr("r", 5).attr("cx", point.x).attr("cy", -point.y).attr("fill", value == 1 ? "red" : "blue");
+            svg.append("circle").attr("r", 5).attr("cx", point.x).attr("cy", -point.y).attr("fill", value == 1 ? "red" : "blue").attr("class", "data");
         }
 
         function resultFX(x) {
@@ -175,14 +175,14 @@ function MainController($scope, $http, socketService) {
             var successCount = 0;
             for (var j = 0; j < data.length; j++) {
                 var record = data[j];
-                net.forward([record.x, record.y]);
-                if (math.round(net.outputNode.p) == record.value) {
+                net.forward([(record.x + 500) / 1000, (record.y + 500) / 1000]);
+                if (math.round(net.outputNode.p * 10) == record.value) {
                     successCount++;
                 }
                 /*if (i % 200 == 0 && j == 0) {
                  console.log(record.value + " / " + net.outputNode.p.toFixed(2));
                  }*/
-                net.backward(record.value);
+                net.backward(record.value / 10);
             }
             var successRate = successCount / data.length * 100;
             if (successRate == 100) {
@@ -193,10 +193,10 @@ function MainController($scope, $http, socketService) {
             if (i % 200 == 0) {
                 console.log("iteration #" + i + " success rate " + successRate.toFixed(2) + "%");
             }
+
         }
 
-        var range = d3.range(-250, 250);
-        for (var y = 0; y < range.length; y += 5) {
+        /*for (var y = 0; y < range.length; y += 5) {
             var m = f(net, range[0], range[y]);
             for (var x = 1; x < range.length; x += 1) {
                 if (f(net, range[x], range[y]) != m) {
@@ -205,10 +205,22 @@ function MainController($scope, $http, socketService) {
                     $scope.svg.append("circle").attr("r", 1).attr("cx", range[x]).attr("cy", -range[y]).attr("class", "plot");
                 }
             }
-        }
+        }*/
+
+        draw_plot(net);
 
         function f(net, x, y) {
-            return net.forward([x, y]) > 0.5 ? 0 : 1;
+            return math.round(net.forward([x, y]) * 10);
+        }
+
+        function draw_plot(net) {
+            $scope.svg.selectAll(".plot").remove();
+            var range = d3.range(-250, 250);
+            for (var x = 0; x < range.length; x += 5) {
+                for (var y = 0; y < range.length; y += 5) {
+                    $scope.svg.append("circle").attr("r", 3).attr("cx", range[x]).attr("cy", -range[y]).attr("class", "plot").attr("fill", f(net, (range[x] + 500) / 1000, (range[y] + 500) / 1000) == 1 ? "red" : "blue").attr("stroke", 0).attr("fill-opacity", .1);
+                }
+            }
         }
     }
 
@@ -218,7 +230,11 @@ function MainController($scope, $http, socketService) {
 
     $scope.clearData = function() {
         data = [];
-        $scope.svg.selectAll("circle").remove();
+        $scope.svg.selectAll(".data").remove();
+    }
+
+    $scope.data = function() {
+        console.log(data);
     }
 
 }
